@@ -3,7 +3,9 @@ import connection from "./connection.js";
 export async function getUser() {
   const conn = connection();
   return new Promise((resolve, reject) => {
-    conn.query(`SELECT * FROM Cliente`, (error, results) => {
+    conn.query(`SELECT Id_cli, Nome_cli, Email_cli, Senha_cli, Logradouro_end, Numero_end, 
+      Bairro_end, Cep_end, Complemento_end FROM Cliente
+        INNER JOIN Endereco ON Cliente.Id_end = Endereco.Id_end `, (error, results) => {
       if (error) {
         reject(error);
       } else {
