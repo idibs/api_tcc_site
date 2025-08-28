@@ -16,11 +16,42 @@ export async function getUser() {
   });
 }
 
-export async function insertUser(data) {
+export async function insertUser(data, id_end) {
   const conn = connection();
   return new Promise((resolve, reject) => {
-    const query = `INSERT INTO Cliente (Nome_cli, Email_cli, Senha_cli, Id_end) VALUES (?, ?, ?, ?)`;
+    const query = `INSERT INTO Cliente (Nome_cli, Email_cli, Senha_cli, Id_end) VALUES (?, ?, ?, ${id_end})`;
     conn.query(query, data, (error, results) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results);
+      }
+    });
+    conn.end();
+  });
+}
+
+export async function insertAdress(data) {
+  const conn = connection();
+  return new Promise((resolve, reject) => {
+    const query = `INSERT INTO Endereco 
+    (Logradouro_end, Numero_end, Bairro_end, Cep_end, Complemento_end) 
+    VALUES (?, ?, ?, ?, ?)`;
+    conn.query(query, data, (error, results) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results.Id_end);
+      }
+    });
+    conn.end();
+  });
+}
+
+export async function getAdressId() {
+  const conn = connection();
+  return new Promise((resolve, reject) => {
+    conn.query(`SELECT Id_End FROM Endereco`, (error, results) => {
       if (error) {
         reject(error);
       } else {
