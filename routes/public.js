@@ -1,10 +1,11 @@
 import express from "express";
-import { getUser, insertUser, insertAdress, getAdressId } from "../database/functions.js";
+import { getUsers, insertUser, insertAdress, getAdressId } from "../database/functions.js";
 
 const router = express.Router();
 
 router.get("/cadastro", async (req, res) => {
-  const data = await getUser();
+  const data = await getUsers();
+  const Id = await getAdressId()
   res.send(data);
 });
 
@@ -22,8 +23,9 @@ router.post("/cadastro", async (req, res) => {
     data.Cep_end, 
     data.Complemento_end]
   await insertAdress(adress)
-  
-  res.send(Id_End)
+  const Id_end = await getAdressId(data.Logradouro_end)
+  user.push(Id_end)
+  await insertUser(user)
 });
 
 export default router;
