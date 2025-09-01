@@ -1,5 +1,5 @@
 import express from "express";
-import { getUsers, insertUser, insertAddress, getAddressId } from "../database/functions.js";
+import { getUsers, insertUser, insertAddress, getAddressId, getPedidos, getProdutosPedido, insertPedidos } from "../database/functions.js";
 
 const router = express.Router();
 
@@ -42,5 +42,42 @@ router.post("/cadastro", async (req, res) => {
     res.status(500).send({ error: error.message });
   }
 });
+
+router.get("/pedidos", async (req, res) => {
+  try {
+    const data = await getPedidos()
+    res.send(data)
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+})
+
+router.get("/pedidos/:id", async (req, res) => {
+  try {
+    const data = await getProdutosPedido(req.params.id)
+    res.send(data)
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+})
+
+router.post("/pedidos", async (req, res) => {
+  try {
+    const data = req.body
+
+    // Validação simples
+    if (!data.Nome_ped || !data.Id_end || !data.Id_cli) {
+      return res.status(400).send({ error: "Nome_ped, Id_end e Id_cli são obrigatórios." });
+    }
+
+    const pedido = [data.Nome_ped, data.Id_end, data.Id_cli];
+    await insertPedidos(pedido);
+
+    res.status(201).send(pedido);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
 
 export default router;
