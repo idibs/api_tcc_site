@@ -1,9 +1,9 @@
 import express from "express";
-import { getUsers, insertUser, insertAddress, getAddressId, getPedidos, getProdutosPedido, insertPedidos } from "../database/functions.js";
+import { getProduto, getProdutos, createProduto } from "../database/functions.js";
 
 const router = express.Router();
 
-router.get("/cadastro", async (req, res) => {
+/*router.get("/cadastro", async (req, res) => {
   try {
     const data = await getUsers();
     res.send(data);
@@ -77,7 +77,45 @@ router.post("/pedidos", async (req, res) => {
   } catch (error) {
     res.status(500).send({ error: error.message });
   }
+});*/
+
+router.get("/produtos", async (_, res) => {
+  try {
+    const data = await getProdutos();
+    res.send(data);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+ 
+router.get("/produtos/:id", async (req, res) => {
+  try {
+    const data = await getProduto(req.params.id);
+    res.send(data);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
 });
 
+router.post("/produtos", async (req, res) => {
+  try {
+    const produto = req.body
+    const data = [
+      produto.Nome_prod,
+      produto.Preco_prod,
+      produto.Peso_prod,
+      produto.Ml_prod,
+      produto.Tipo_prod,
+      produto.Quantidade_prod,
+      produto.Codigo_prod,
+      produto.Foto,
+      produto.Id_categ
+    ]
+    await createProduto(data)
+    res.send("produto criado")
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+})
 
 export default router;

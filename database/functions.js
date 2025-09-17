@@ -1,6 +1,6 @@
 import connection from "./connection.js";
 
-export function getUsers() {
+/*export function getUsers() {
   const conn = connection();
   return new Promise((resolve, reject) => {
     const sql = `
@@ -107,6 +107,54 @@ export function insertPedidos(data) {
   `;
   return new Promise((resolve, reject) => {
     conn.query(query, data, (error, results) => {
+      conn.end();
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+}*/
+
+export function getProdutos() {
+  const conn = connection();
+  return new Promise((resolve, reject) => {
+    const sql = `
+      SELECT * FROM Produto`;
+    conn.query(sql, (error, results) => {
+      conn.end();
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+}
+ 
+export function getProduto(Id_prod) {
+  const conn = connection();
+  return new Promise((resolve, reject) => {
+    const sql = `
+      SELECT * FROM Produto WHERE Id_prod = ?`;
+    conn.query(sql, [Id_prod],  (error, results) => {
+      conn.end();
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+}
+
+export function createProduto(produto) {
+  const conn = connection();
+  return new Promise((resolve, reject) => {
+    const sql = `INSERT INTO Produto (Nome_prod, Preco_prod, Peso_prod, Ml_prod, Tipo_prod, Quantidade_prod, Codigo_prod, Foto, Id_categ)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`;
+    conn.query(sql, produto, (error, results) => {
       conn.end();
       if (error) {
         reject(error);
