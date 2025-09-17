@@ -1,5 +1,5 @@
 import express from "express";
-import { getProduto, getProdutos, createProduto } from "../database/functions.js";
+import { getProduto, getProdutos, createProduto, editProduto, deleteProduto } from "../database/functions.js";
 
 const router = express.Router();
 
@@ -113,6 +113,36 @@ router.post("/produtos", async (req, res) => {
     ]
     await createProduto(data)
     res.send("produto criado")
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+})
+
+router.put("/produtos/:id", async (req, res) => {
+  try {
+    const produto = req.body
+    const data = [
+      produto.Nome_prod,
+      produto.Preco_prod,
+      produto.Peso_prod,
+      produto.Ml_prod,
+      produto.Tipo_prod,
+      produto.Quantidade_prod,
+      produto.Codigo_prod,
+      produto.Foto,
+      produto.Id_categ
+    ]
+    await editProduto(req.params.id, data)
+    res.send("produto editado")
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+})
+
+router.delete("/produtos/:id", async (req, res) => {
+  try {
+    await deleteProduto(req.params.id)
+    res.send("produto deletado")
   } catch (error) {
     res.status(500).send({ error: error.message });
   }

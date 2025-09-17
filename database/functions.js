@@ -164,3 +164,35 @@ export function createProduto(produto) {
     });
   });
 }
+
+export function editProduto(Id_prod, produto) {
+  const conn = connection();
+  return new Promise((resolve, reject) => {
+    const sql = `UPDATE Produto 
+    SET  Nome_prod = ?, Preco_prod = ?, Peso_prod = ?, Ml_prod = ?, Tipo_prod = ?, Quantidade_prod = ?, Codigo_prod = ?, Foto = ?, Id_categ = ?
+    WHERE Id_prod = ${Id_prod}`;
+    conn.query(sql, produto, (error, results) => {
+      conn.end();
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+}
+
+export function deleteProduto(Id_prod) {
+  const conn = connection();
+  return new Promise((resolve, reject) => {
+    const sql = `UPDATE Produto SET id_categ = null WHERE id_prod = ${Id_prod}; `;
+    conn.query(sql, (error, results) => {
+      conn.end();
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+}
