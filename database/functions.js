@@ -132,13 +132,13 @@ export function getProdutos() {
     });
   });
 }
- 
+
 export function getProduto(Id_prod) {
   const conn = connection();
   return new Promise((resolve, reject) => {
     const sql = `
       SELECT * FROM Produto WHERE Id_prod = ?`;
-    conn.query(sql, [Id_prod],  (error, results) => {
+    conn.query(sql, [Id_prod], (error, results) => {
       conn.end();
       if (error) {
         reject(error);
@@ -165,12 +165,12 @@ export function createProduto(produto) {
   });
 }
 
-export function editProduto(Id_prod, produto) {
+export function editProduto(produto) {
   const conn = connection();
   return new Promise((resolve, reject) => {
     const sql = `UPDATE Produto 
     SET  Nome_prod = ?, Preco_prod = ?, Peso_prod = ?, Ml_prod = ?, Tipo_prod = ?, Quantidade_prod = ?, Codigo_prod = ?, Foto = ?, Id_categ = ?
-    WHERE Id_prod = ${Id_prod}`;
+    WHERE Id_prod = ?`;
     conn.query(sql, produto, (error, results) => {
       conn.end();
       if (error) {
@@ -185,14 +185,25 @@ export function editProduto(Id_prod, produto) {
 export function deleteProduto(Id_prod) {
   const conn = connection();
   return new Promise((resolve, reject) => {
-    const sql = `UPDATE Produto SET id_categ = null WHERE id_prod = ${Id_prod}; `;
-    conn.query(sql, (error, results) => {
-      conn.end();
+    // Primeiro, deletar os registros na tabela filha
+    const sql1 = `DELETE FROM Pedido_produto WHERE Id_prod = ?;`;
+    const sql2 = `DELETE FROM Produto WHERE Id_prod = ?;`;
+
+    conn.query(sql1, [Id_prod], (error) => {
       if (error) {
-        reject(error);
-      } else {
-        resolve(results);
+        conn.end();
+        return reject(error);
       }
+
+      // Depois, deletar o produto
+      conn.query(sql2, [Id_prod], (error, results) => {
+        conn.end();
+        if (error) {
+          reject(error);
+        } else {
+          resolve(results);
+        }
+      });
     });
   });
 }

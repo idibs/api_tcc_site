@@ -4,7 +4,7 @@ export default function connection() {
   return mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "",
+    password: "Jomacara1308",
     database: "tcc",
   });
 }
