@@ -97,7 +97,7 @@ router.get("/produtos", async (_, res) => {
 router.get("/produtos/:id", async (req, res) => {
   try {
     const data = await getProduto(req.params.id);
-    res.send(data);
+    res.send(data[0]);
   } catch (error) {
     res.status(500).send({ error: error.message });
   }

@@ -120,8 +120,7 @@ export function insertPedidos(data) {
 export function getProdutos() {
   const conn = connection();
   return new Promise((resolve, reject) => {
-    const sql = `
-      SELECT * FROM Produto`;
+    const sql = `SELECT * FROM Produto`;
     conn.query(sql, (error, results) => {
       conn.end();
       if (error) {
@@ -136,8 +135,12 @@ export function getProdutos() {
 export function getProduto(Id_prod) {
   const conn = connection();
   return new Promise((resolve, reject) => {
-    const sql = `
-      SELECT * FROM Produto WHERE Id_prod = ?`;
+    const sql = `SELECT p.Id_prod, p.Nome_prod, p.Preco_prod, p.Peso_prod, p.Ml_prod,
+                p.Tipo_prod, p.Quantidade_prod, p.Codigo_prod, p.Foto,
+                c.Nome_categ
+                FROM Produto p
+                JOIN Categoria c ON p.Id_categ = c.Id_categ
+                WHERE p.Id_prod = ?`;
     conn.query(sql, [Id_prod], (error, results) => {
       conn.end();
       if (error) {
@@ -153,7 +156,7 @@ export function createProduto(produto) {
   const conn = connection();
   return new Promise((resolve, reject) => {
     const sql = `INSERT INTO Produto (Nome_prod, Preco_prod, Peso_prod, Ml_prod, Tipo_prod, Quantidade_prod, Codigo_prod, Foto, Id_categ)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`;
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`;
     conn.query(sql, produto, (error, results) => {
       conn.end();
       if (error) {
@@ -169,8 +172,8 @@ export function editProduto(produto) {
   const conn = connection();
   return new Promise((resolve, reject) => {
     const sql = `UPDATE Produto 
-    SET  Nome_prod = ?, Preco_prod = ?, Peso_prod = ?, Ml_prod = ?, Tipo_prod = ?, Quantidade_prod = ?, Codigo_prod = ?, Foto = ?, Id_categ = ?
-    WHERE Id_prod = ?`;
+                SET  Nome_prod = ?, Preco_prod = ?, Peso_prod = ?, Ml_prod = ?, Tipo_prod = ?, Quantidade_prod = ?, Codigo_prod = ?, Foto = ?, Id_categ = ?
+                WHERE Id_prod = ?`;
     conn.query(sql, produto, (error, results) => {
       conn.end();
       if (error) {
