@@ -1,68 +1,8 @@
 import connection from "./connection.js";
 
-/*export function getUsers() {
-  const conn = connection();
-  return new Promise((resolve, reject) => {
-    const sql = `
-      SELECT Id_cli, Nome_cli, Email_cli, Senha_cli, Logradouro_end, Numero_end, Bairro_end, Cep_end, Complemento_end
-      FROM Cliente
-      INNER JOIN Endereco ON Cliente.Id_end = Endereco.Id_end
-    `;
-    conn.query(sql, (error, results) => {
-      conn.end();
-      if (error) {
-        reject(error);
-      } else {
-        resolve(results);
-      }
-    });
-  });
-}
+/*
 
-export function insertUser(data) {
-  const conn = connection();
-  const query = `INSERT INTO Cliente (Nome_cli, Email_cli, Senha_cli, Id_end) VALUES (?, ?, ?, ?)`;
-  return new Promise((resolve, reject) => {
-    conn.query(query, data, (error, results) => {
-      conn.end();
-      if (error) {
-        reject(error);
-      } else {
-        resolve(results);
-      }
-    });
-  });
-}
 
-export function insertAddress(data) {
-  const conn = connection();
-  const query = `INSERT INTO Endereco (Logradouro_end, Numero_end, Bairro_end, Cep_end, Complemento_end) VALUES (?, ?, ?, ?, ?)`;
-  return new Promise((resolve, reject) => {
-    conn.query(query, data, (error, results) => {
-      conn.end();
-      if (error) {
-        reject(error);
-      } else {
-        resolve(results);
-      }
-    });
-  });
-}
-
-export function getAddressId(Logradouro_end) {
-  const conn = connection();
-  const query = `SELECT Id_end FROM Endereco WHERE Logradouro_end = ?`;
-  return new Promise((resolve, reject) => {
-    conn.query(query, [Logradouro_end], (error, results) => {
-      conn.end();
-      if (error) {
-        reject(error);
-      } else {
-        resolve(results[0]?.Id_end || null);
-      }
-    });
-  });
-}
 
 export function getPedidos() {
   const conn = connection();
@@ -116,11 +56,93 @@ export function insertPedidos(data) {
     });
   });
 }*/
+export function getIdEndereco(Logradouro_end) {
+  const conn = connection();
+  const query = `SELECT Id_end FROM Endereco WHERE Logradouro_end = ?`;
+  return new Promise((resolve, reject) => {
+    conn.query(query, [Logradouro_end], (error, results) => {
+      conn.end();
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results[0]?.Id_end || null);
+      }
+    });
+  });
+}
+
+export function getClientes() {
+  const conn = connection();
+  return new Promise((resolve, reject) => {
+    const sql = `
+      SELECT Nome, Email, Telefone, Senha_cli, Logradouro_end, Numero_end, Bairro_end, Cep_end, Complemento_end
+      FROM Cliente
+      INNER JOIN Endereco ON Cliente.Id_end = Endereco.Id_end
+    `;
+    conn.query(sql, (error, results) => {
+      conn.end();
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+}
+
+export function createEndereco(data) {
+  const conn = connection();
+  const query = `INSERT INTO Endereco (Logradouro_end, Numero_end, Bairro_end, Cep_end, Complemento_end) VALUES (?, ?, ?, ?, ?)`;
+  return new Promise((resolve, reject) => {
+    conn.query(query, data, (error, results) => {
+      conn.end();
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+}
+
+export function createUser(data) {
+  const conn = connection();
+  const query = `INSERT INTO Cliente (Nome, Email, Senha_cli, Telefone, Id_end) VALUES (?, ?, ?, ?, ?)`;
+  return new Promise((resolve, reject) => {
+    conn.query(query, data, (error, results) => {
+      conn.end();
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+}
+
+export function getCategorias() {
+  const conn = connection();
+  return new Promise((resolve, reject) => {
+    const sql = `SELECT * FROM Categoria;`;
+    conn.query(sql, (error, results) => {
+      conn.end();
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+}
 
 export function getProdutos() {
   const conn = connection();
   return new Promise((resolve, reject) => {
-    const sql = `SELECT * FROM Produto`;
+    const sql = `SELECT p.Id_prod, p.Nome_prod, p.Preco_prod, p.Peso_prod, p.Ml_prod,
+                p.Tipo_prod, p.Quantidade_prod, p.Codigo_prod, p.Foto,
+                c.Nome_categ
+                FROM Produto p
+                JOIN Categoria c ON p.Id_categ = c.Id_categ`;
     conn.query(sql, (error, results) => {
       conn.end();
       if (error) {

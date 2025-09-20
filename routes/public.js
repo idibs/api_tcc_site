@@ -5,18 +5,16 @@ import {
   createProduto,
   editProduto,
   deleteProduto,
+  getCategorias,
+  createUser,
+  createEndereco,
+  getClientes,
+  getIdEndereco,
 } from "../database/functions.js";
 
 const router = express.Router();
 
-/*router.get("/cadastro", async (req, res) => {
-  try {
-    const data = await getUsers();
-    res.send(data);
-  } catch (error) {
-    res.status(500).send({ error: error.message });
-  }
-});
+/*
 
 router.post("/cadastro", async (req, res) => {
   try {
@@ -150,6 +148,46 @@ router.delete("/produtos/:id", async (req, res) => {
   try {
     await deleteProduto(req.params.id);
     res.send("produto deletado");
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
+router.get("/categorias", async (_, res) => {
+  try {
+    const data = await getCategorias();
+    res.send(data);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
+router.get("/cadastro", async (req, res) => {
+  try {
+    const data = await getClientes();
+    res.send(data);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
+router.post("/cadastro", async (req, res) => {
+  try {
+    const data = req.body;
+    const address = [
+      data.Logradouro_end,
+      data.Numero_end,
+      data.Bairro_end,
+      data.Cep_end,
+      data.Complemento_end,
+    ];
+
+    await createEndereco(address);
+    const Id_end = await getIdEndereco(data.Logradouro_end);
+    const user = [data.Nome, data.Email, data.Senha_cli, data.Telefone, Id_end];
+    await createUser(user);
+
+    res.send({ message: "Usuário e endereço cadastrados com sucesso!" });
   } catch (error) {
     res.status(500).send({ error: error.message });
   }
