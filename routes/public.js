@@ -2,12 +2,12 @@ import express from "express";
 import {
   getOutrosProdutos,
   getCategorias,
-  createUser,
   createEndereco,
-  getClientes,
-  getIdEndereco,
   getCereais,
+  getEndereco
 } from "../database/functions.js";
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 const router = express.Router();
 
@@ -107,35 +107,61 @@ router.get("/categorias", async (_, res) => {
   }
 });
 
-router.get("/cadastro", async (req, res) => {
+router.post('/cadastro', async (req, res) => {
   try {
-    const data = await getClientes();
+    const request = req.body;
+
+    //falta bcrypt
+    const senhaEncriptada = request.senha
+
+    const cep = request.cep
+
+    /*fetch(`https://viacep.com.br/ws/${cep}/json/`)
+    .then(response => {
+      if (!response.ok) {
+        res.status(500).send('erro ao buscar cep');
+      }
+      return response.json(); // Converte a resposta para JSON
+    })
+    .then(async (data) => {
+      const endereco = [
+        data.logradouro,
+        request.numero,
+        data.bairro,
+        request.cep,
+        request.complemento
+      ];
+      await createEndereco(endereco);
+    })
+    .catch(error => {
+      console.error('Erro na requisição:', error);
+    });*/
+
+    const idEndereco = await getEndereco(cep)
+
+    const cliente = [
+      request.nome,
+      request.telefone,
+      request.email,
+      senhaEncriptada,
+      idEndereco
+    ]
+
+    res.send(cliente)
+
+
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+})
+
+router.get("/endereco", async (_, res) => {
+  try {
+    const data = await getEndereco();
     res.send(data);
   } catch (error) {
     res.status(500).send({ error: error.message });
   }
-});
-
-router.post("/cadastro", async (req, res) => {
-  try {
-    const data = req.body;
-    const address = [
-      data.Logradouro_end,
-      data.Numero_end,
-      data.Bairro_end,
-      data.Cep_end,
-      data.Complemento_end,
-    ];
-
-    await createEndereco(address);
-    const Id_end = await getIdEndereco(data.Logradouro_end);
-    const user = [data.Nome, data.Email, data.Senha_cli, data.Telefone, Id_end];
-    await createUser(user);
-
-    res.send({ message: "Usuário e endereço cadastrados com sucesso!" });
-  } catch (error) {
-    res.status(500).send({ error: error.message });
-  }
-});
+})
 
 export default router;

@@ -56,43 +56,10 @@ export function insertPedidos(data) {
     });
   });
 }*/
-export function getIdEndereco(Logradouro_end) {
-  const conn = connection();
-  const query = `SELECT Id_end FROM Endereco WHERE Logradouro_end = ?`;
-  return new Promise((resolve, reject) => {
-    conn.query(query, [Logradouro_end], (error, results) => {
-      conn.end();
-      if (error) {
-        reject(error);
-      } else {
-        resolve(results[0]?.Id_end || null);
-      }
-    });
-  });
-}
-
-export function getClientes() {
-  const conn = connection();
-  return new Promise((resolve, reject) => {
-    const sql = `
-      SELECT Nome, Email, Telefone, Senha_cli, Logradouro_end, Numero_end, Bairro_end, Cep_end, Complemento_end
-      FROM Cliente
-      INNER JOIN Endereco ON Cliente.Id_end = Endereco.Id_end
-    `;
-    conn.query(sql, (error, results) => {
-      conn.end();
-      if (error) {
-        reject(error);
-      } else {
-        resolve(results);
-      }
-    });
-  });
-}
 
 export function createEndereco(data) {
   const conn = connection();
-  const query = `INSERT INTO Endereco (Logradouro_end, Numero_end, Bairro_end, Cep_end, Complemento_end) VALUES (?, ?, ?, ?, ?)`;
+  const query = `INSERT INTO Endereco (Rua_end, Numero_end, Bairro_end, Cep_end, Complemento_end) VALUES (?, ?, ?, ?, ?)`;
   return new Promise((resolve, reject) => {
     conn.query(query, data, (error, results) => {
       conn.end();
@@ -105,9 +72,32 @@ export function createEndereco(data) {
   });
 }
 
-export function createUser(data) {
+export function getEndereco(cep) {
   const conn = connection();
-  const query = `INSERT INTO Cliente (Nome, Email, Senha_cli, Telefone, Id_end) VALUES (?, ?, ?, ?, ?)`;
+  const query = `select Id_end from endereco WHERE Cep_end = ?`;
+  return new Promise((resolve, reject) => {
+    conn.query(query, createPool, (error, results) => {
+      conn.end();
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+}
+
+export function createCliente(data) {
+  const conn = connection();
+  const query = `INSERT INTO pessoa ( 
+                Nome_pes, 
+                Telefone_pes, 
+                Email_pes, 
+                Senha_pes, 
+                Tipo_pes, 
+                Id_end
+                ) VALUES
+                (?, ?, ?, ?, 'Cliente', ?),`;
   return new Promise((resolve, reject) => {
     conn.query(query, data, (error, results) => {
       conn.end();
