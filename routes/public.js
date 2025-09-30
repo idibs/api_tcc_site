@@ -86,7 +86,14 @@ router.post("/pedidos", async (req, res) => {
 router.get("/produtos", async (_, res) => {
   try {
     const data = await getProdutos();
-    res.send(data);
+    const produtos = [];
+    data[0].forEach((item) => {
+      produtos.push(item);
+    });
+    data[1].forEach((item) => {
+      produtos.push(item);
+    });
+    res.send(produtos);
   } catch (error) {
     res.status(500).send({ error: error.message });
   }

@@ -138,11 +138,7 @@ export function getCategorias() {
 export function getProdutos() {
   const conn = connection();
   return new Promise((resolve, reject) => {
-    const sql = `SELECT p.Id_prod, p.Nome_prod, p.Preco_prod, p.Peso_prod, p.Ml_prod,
-                p.Tipo_prod, p.Quantidade_prod, p.Codigo_prod, p.Foto,
-                c.Nome_categ
-                FROM Produto p
-                JOIN Categoria c ON p.Id_categ = c.Id_categ`;
+    const sql = `call PROselect_produtos_site();`;
     conn.query(sql, (error, results) => {
       conn.end();
       if (error) {
