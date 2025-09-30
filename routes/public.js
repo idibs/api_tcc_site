@@ -1,15 +1,12 @@
 import express from "express";
 import {
-  getProduto,
-  getProdutos,
-  createProduto,
-  editProduto,
-  deleteProduto,
+  getOutrosProdutos,
   getCategorias,
   createUser,
   createEndereco,
   getClientes,
   getIdEndereco,
+  getCereais,
 } from "../database/functions.js";
 
 const router = express.Router();
@@ -83,78 +80,19 @@ router.post("/pedidos", async (req, res) => {
   }
 });*/
 
+router.get("/cereais", async (_, res) => {
+  try {
+    const data = await getCereais();
+    res.send(data);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
 router.get("/produtos", async (_, res) => {
   try {
-    const data = await getProdutos();
-    const produtos = [];
-    data[0].forEach((item) => {
-      produtos.push(item);
-    });
-    data[1].forEach((item) => {
-      produtos.push(item);
-    });
-    res.send(produtos);
-  } catch (error) {
-    res.status(500).send({ error: error.message });
-  }
-});
-
-router.get("/produtos/:id", async (req, res) => {
-  try {
-    const data = await getProduto(req.params.id);
-    res.send(data[0]);
-  } catch (error) {
-    res.status(500).send({ error: error.message });
-  }
-});
-
-router.post("/produtos", async (req, res) => {
-  try {
-    const produto = req.body;
-    const data = [
-      produto.Nome_prod,
-      produto.Preco_prod,
-      produto.Peso_prod,
-      produto.Ml_prod,
-      produto.Tipo_prod,
-      produto.Quantidade_prod,
-      produto.Codigo_prod,
-      produto.Foto,
-      produto.Id_categ,
-    ];
-    await createProduto(data);
-    res.send("produto criado");
-  } catch (error) {
-    res.status(500).send({ error: error.message });
-  }
-});
-
-router.put("/produtos/:id", async (req, res) => {
-  try {
-    const produto = req.body;
-    const data = [
-      produto.Nome_prod,
-      produto.Preco_prod,
-      produto.Peso_prod,
-      produto.Ml_prod,
-      produto.Tipo_prod,
-      produto.Quantidade_prod,
-      produto.Codigo_prod,
-      produto.Foto,
-      produto.Id_categ,
-      req.params.id,
-    ];
-    await editProduto(data);
-    res.send("produto editado");
-  } catch (error) {
-    res.status(500).send({ error: error.message });
-  }
-});
-
-router.delete("/produtos/:id", async (req, res) => {
-  try {
-    await deleteProduto(req.params.id);
-    res.send("produto deletado");
+    const data = await getOutrosProdutos();
+    res.send(data);
   } catch (error) {
     res.status(500).send({ error: error.message });
   }

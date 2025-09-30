@@ -135,10 +135,17 @@ export function getCategorias() {
   });
 }
 
-export function getProdutos() {
+export function getCereais() {
   const conn = connection();
   return new Promise((resolve, reject) => {
-    const sql = `call PROselect_produtos_site();`;
+    const sql = `SELECT 
+                  Id_ens as Id, 
+                  Nome_ens as Nome,  
+                  Peso_ens as Peso, 
+                  Quantidade_ens as Quantidade, 
+                  Codigo_ens as Codigo, 
+                  Foto_ens as Foto
+                FROM produto_ensacado;`;
     conn.query(sql, (error, results) => {
       conn.end();
       if (error) {
@@ -150,81 +157,26 @@ export function getProdutos() {
   });
 }
 
-export function getProduto(Id_prod) {
+export function getOutrosProdutos() {
   const conn = connection();
   return new Promise((resolve, reject) => {
-    const sql = `SELECT p.Id_prod, p.Nome_prod, p.Preco_prod, p.Peso_prod, p.Ml_prod,
-                p.Tipo_prod, p.Quantidade_prod, p.Codigo_prod, p.Foto,
-                c.Nome_categ
-                FROM Produto p
-                JOIN Categoria c ON p.Id_categ = c.Id_categ
-                WHERE p.Id_prod = ?`;
-    conn.query(sql, [Id_prod], (error, results) => {
+    const sql = `SELECT 
+                  Id_out as Id, 
+                  Nome_out as Nome, 
+                  Quantidade_out as Quantidade, 
+                  Peso_out as Peso, 
+                  Codigo_out as Codigo, 
+                  Foto_out as Foto,
+                  Nome_categ as Categoria
+                FROM outros_produtos p
+                INNER JOIN categoria c ON p.Id_categ = c.Id_categ;`;
+    conn.query(sql, (error, results) => {
       conn.end();
       if (error) {
         reject(error);
       } else {
         resolve(results);
       }
-    });
-  });
-}
-
-export function createProduto(produto) {
-  const conn = connection();
-  return new Promise((resolve, reject) => {
-    const sql = `INSERT INTO Produto (Nome_prod, Preco_prod, Peso_prod, Ml_prod, Tipo_prod, Quantidade_prod, Codigo_prod, Foto, Id_categ)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`;
-    conn.query(sql, produto, (error, results) => {
-      conn.end();
-      if (error) {
-        reject(error);
-      } else {
-        resolve(results);
-      }
-    });
-  });
-}
-
-export function editProduto(produto) {
-  const conn = connection();
-  return new Promise((resolve, reject) => {
-    const sql = `UPDATE Produto 
-                SET  Nome_prod = ?, Preco_prod = ?, Peso_prod = ?, Ml_prod = ?, Tipo_prod = ?, Quantidade_prod = ?, Codigo_prod = ?, Foto = ?, Id_categ = ?
-                WHERE Id_prod = ?`;
-    conn.query(sql, produto, (error, results) => {
-      conn.end();
-      if (error) {
-        reject(error);
-      } else {
-        resolve(results);
-      }
-    });
-  });
-}
-
-export function deleteProduto(Id_prod) {
-  const conn = connection();
-  return new Promise((resolve, reject) => {
-    // Primeiro, deletar os registros na tabela filha
-    const sql1 = `DELETE FROM Pedido_produto WHERE Id_prod = ?;`;
-    const sql2 = `DELETE FROM Produto WHERE Id_prod = ?;`;
-
-    conn.query(sql1, [Id_prod], (error) => {
-      if (error) {
-        conn.end();
-        return reject(error);
-      }
-
-      // Depois, deletar o produto
-      conn.query(sql2, [Id_prod], (error, results) => {
-        conn.end();
-        if (error) {
-          reject(error);
-        } else {
-          resolve(results);
-        }
-      });
     });
   });
 }
