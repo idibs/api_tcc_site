@@ -4,7 +4,9 @@ import {
   getCategorias,
   createEndereco,
   getCereais,
-  getEndereco
+  getEndereco,
+  getEnderecos,
+  createCliente
 } from "../database/functions.js";
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
@@ -111,53 +113,62 @@ router.post('/cadastro', async (req, res) => {
   try {
     const request = req.body;
 
-    //falta bcrypt
-    const senhaEncriptada = request.senha
+    // Encriptando a senha com bcrypt
+    const senhaEncriptada = await bcrypt.hash(request.senha, 10);
 
-    const cep = request.cep
+    const cep = request.cep;
 
-    /*fetch(`https://viacep.com.br/ws/${cep}/json/`)
-    .then(response => {
-      if (!response.ok) {
-        res.status(500).send('erro ao buscar cep');
-      }
-      return response.json(); // Converte a resposta para JSON
-    })
-    .then(async (data) => {
-      const endereco = [
-        data.logradouro,
-        request.numero,
-        data.bairro,
-        request.cep,
-        request.complemento
-      ];
-      await createEndereco(endereco);
-    })
-    .catch(error => {
-      console.error('Erro na requisição:', error);
-    });*/
+    // Usando 'await' para fazer a requisição de forma assíncrona
+    const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+    
+    if (!response.ok) {
+      return res.status(500).send('Erro ao buscar CEP');
+    }
 
-    const idEndereco = await getEndereco(cep)
+    const data = await response.json();
+
+    const endereco = [
+      data.logradouro,
+      request.numero,
+      data.bairro,
+      request.cep,
+      request.complemento
+    ];
+
+    // Criando o endereço
+    await createEndereco(endereco);
+
+    // Recuperando o ID do endereço recém-criado
+    const idEndereco = await getEndereco(cep, request.numero);
+
+    if (!idEndereco || idEndereco.length === 0) {
+      return res.status(500).send('Erro ao recuperar o endereço');
+    }
 
     const cliente = [
       request.nome,
       request.telefone,
       request.email,
       senhaEncriptada,
-      idEndereco
-    ]
+      idEndereco[0].Id_end
+    ];
 
-    res.send(cliente)
+    // Criando o cliente
+    await createCliente(cliente);
 
+    // Resposta de sucesso
+    res.status(201).send("Cadastro realizado com sucesso");
 
   } catch (error) {
+    console.error(error);  // Log do erro para debug
     res.status(500).send({ error: error.message });
   }
-})
+});
+
 
 router.get("/endereco", async (_, res) => {
   try {
-    const data = await getEndereco();
+    const data = await getEnderecos();
     res.send(data);
   } catch (error) {
     res.status(500).send({ error: error.message });

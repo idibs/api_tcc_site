@@ -72,11 +72,26 @@ export function createEndereco(data) {
   });
 }
 
-export function getEndereco(cep) {
+export function getEndereco(cep, numero) {
   const conn = connection();
-  const query = `select Id_end from endereco WHERE Cep_end = ?`;
+  const query = `select Id_end from endereco WHERE Cep_end = ? and Numero_end = ?`;
   return new Promise((resolve, reject) => {
-    conn.query(query, createPool, (error, results) => {
+    conn.query(query, [cep, numero], (error, results) => {
+      conn.end();
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+}
+
+export function getEnderecos() {
+  const conn = connection();
+  const query = `select * from endereco`;
+  return new Promise((resolve, reject) => {
+    conn.query(query, (error, results) => {
       conn.end();
       if (error) {
         reject(error);
@@ -89,15 +104,13 @@ export function getEndereco(cep) {
 
 export function createCliente(data) {
   const conn = connection();
-  const query = `INSERT INTO pessoa ( 
-                Nome_pes, 
+  const query = `INSERT INTO pessoa (Nome_pes, 
                 Telefone_pes, 
                 Email_pes, 
                 Senha_pes, 
                 Tipo_pes, 
-                Id_end
-                ) VALUES
-                (?, ?, ?, ?, 'Cliente', ?),`;
+                Id_end) VALUES
+                (?, ?, ?, ?, 'Cliente', ?);`;
   return new Promise((resolve, reject) => {
     conn.query(query, data, (error, results) => {
       conn.end();
