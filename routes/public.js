@@ -6,10 +6,14 @@ import {
   getCereais,
   getEndereco,
   getEnderecos,
-  createCliente
+  createCliente,
+  getClienteIdByNome,
+  getCerealIdByNome,
+  getOutrosProdutosIdByNome,
+  createPedido,
 } from "../database/functions.js";
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 const router = express.Router();
 
@@ -109,7 +113,7 @@ router.get("/categorias", async (_, res) => {
   }
 });
 
-router.post('/cadastro', async (req, res) => {
+router.post("/cadastro", async (req, res) => {
   try {
     const request = req.body;
 
@@ -120,9 +124,9 @@ router.post('/cadastro', async (req, res) => {
 
     // Usando 'await' para fazer a requisição de forma assíncrona
     const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-    
+
     if (!response.ok) {
-      return res.status(500).send('Erro ao buscar CEP');
+      return res.status(500).send("Erro ao buscar CEP");
     }
 
     const data = await response.json();
@@ -132,7 +136,7 @@ router.post('/cadastro', async (req, res) => {
       request.numero,
       data.bairro,
       request.cep,
-      request.complemento
+      request.complemento,
     ];
 
     // Criando o endereço
@@ -142,7 +146,7 @@ router.post('/cadastro', async (req, res) => {
     const idEndereco = await getEndereco(cep, request.numero);
 
     if (!idEndereco || idEndereco.length === 0) {
-      return res.status(500).send('Erro ao recuperar o endereço');
+      return res.status(500).send("Erro ao recuperar o endereço");
     }
 
     const cliente = [
@@ -150,7 +154,7 @@ router.post('/cadastro', async (req, res) => {
       request.telefone,
       request.email,
       senhaEncriptada,
-      idEndereco[0].Id_end
+      idEndereco[0].Id_end,
     ];
 
     // Criando o cliente
@@ -158,13 +162,11 @@ router.post('/cadastro', async (req, res) => {
 
     // Resposta de sucesso
     res.status(201).send("Cadastro realizado com sucesso");
-
   } catch (error) {
-    console.error(error);  // Log do erro para debug
+    console.error(error); // Log do erro para debug
     res.status(500).send({ error: error.message });
   }
 });
-
 
 router.get("/endereco", async (_, res) => {
   try {
@@ -173,6 +175,68 @@ router.get("/endereco", async (_, res) => {
   } catch (error) {
     res.status(500).send({ error: error.message });
   }
-})
+});
 
+router.post("/pedido", async (req, res) => {
+  try {
+    const request = req.body;
+
+    const endereco = [
+      request.logradouro,
+      request.numero,
+      request.bairro,
+      request.cep,
+      request.complemento,
+    ];
+
+    // Recuperando o ID do endereço recém-criado
+    let Id_end = await getEndereco(request.cep, request.numero);
+
+    if (!Id_end || Id_end.length === 0) {
+      await createEndereco(endereco);
+      Id_end = await getEndereco(request.cep, request.numero);
+      if (!Id_end || Id_end.length === 0) {
+        return res.status(500).send("Erro ao recuperar o endereço");
+      }
+    }
+
+    const Id_pes = await getClienteIdByNome(request.nome);
+
+    if (!Id_pes || Id_pes.length === 0) {
+      return res.status(404).send("Cliente não encontrado");
+    }
+
+    let Id_prod = await getCerealIdByNome(request.produto);
+
+    if (!Id_prod || Id_prod.length === 0) {
+      Id_prod = await getOutrosProdutosIdByNome(request.produto);
+      if (!Id_prod || Id_prod.length === 0) {
+        return res.status(404).send("Produto não encontrado");
+      }
+    }
+
+    const dataAtual = new Date();
+    const dataFormatada = dataAtual.toISOString().split("T")[0]; // Formato YYYY-MM-DD
+    const valor_total = request.preco * request.quantidade;
+    const peso_total = Id_prod[0].Peso * request.quantidade;
+
+    const pedido = [
+      Id_pes[0].Id_pes,
+      Id_prod[0].Id_ens,
+      Id_prod[0].Id_out,
+      Id_end[0].Id_end,
+      dataFormatada,
+      request.quantidade,
+      peso_total,
+      valor_total,
+      request.metodo_pagamento,
+    ];
+
+    await createPedido(pedido);
+
+    res.status(201).send("Pedido realizado com sucesso");
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
 export default router;

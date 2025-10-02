@@ -183,3 +183,65 @@ export function getOutrosProdutos() {
     });
   });
 }
+
+export function createPedido(pedido) {
+  const conn = connection();
+  return new Promise((resolve, reject) => {
+    const sql = `INSERT INTO pedido_produto
+                (Id_pes, Id_ens, Id_out, Id_end, Data_ped, Quantidade_pedprod, Peso_total_pedprod, Valor_total_pedprod, Metodo_pagamento_pedprod) VALUES
+                (?, ?, ?, ?, ?, ?, ?, ?, ?);`;
+    conn.query(sql, pedido, (error, results) => {
+      conn.end();
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+}
+
+export function getClienteIdByNome(nome) {
+  const conn = connection();
+  return new Promise((resolve, reject) => {
+    const sql = `SELECT Id_pes FROM pessoa WHERE Tipo_pes = 'Cliente' and Nome_pes = ?;`;
+    conn.query(sql, nome, (error, results) => {
+      conn.end();
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+}
+
+export function getCerealIdByNome(nome) {
+  const conn = connection();
+  return new Promise((resolve, reject) => {
+    const sql = `SELECT Id_ens, Peso_ens as Peso FROM produto_ensacado WHERE Nome_ens = ?;`;
+    conn.query(sql, nome, (error, results) => {
+      conn.end();
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+}
+
+export function getOutrosProdutosIdByNome(nome) {
+  const conn = connection();
+  return new Promise((resolve, reject) => {
+    const sql = `SELECT Id_out, Peso_out as Peso FROM outros_produtos WHERE Nome_out = ?;`;
+    conn.query(sql, nome, (error, results) => {
+      conn.end();
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+}
