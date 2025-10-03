@@ -30,21 +30,6 @@ export function getEndereco(cep, numero) {
   });
 }
 
-export function getEnderecos() {
-  const conn = connection();
-  const query = `select * from endereco`;
-  return new Promise((resolve, reject) => {
-    conn.query(query, (error, results) => {
-      conn.end();
-      if (error) {
-        reject(error);
-      } else {
-        resolve(results);
-      }
-    });
-  });
-}
-
 export function createCliente(data) {
   const conn = connection();
   const query = `INSERT INTO pessoa (Nome_pes, 

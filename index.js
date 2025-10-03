@@ -1,5 +1,6 @@
 import express from "express";
 import publicRoutes from "./routes/public.js";
+import privateRoutes from "./routes/private.js";
 import cors from "cors";
 
 const app = express();
@@ -14,6 +15,7 @@ app.use(
   })
 );
 app.use("/", publicRoutes);
+app.use("/", privateRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
