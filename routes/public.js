@@ -11,11 +11,15 @@ import {
   getCerealIdByNome,
   getOutrosProdutosIdByNome,
   createPedido,
+  getClienteEmail,
 } from "../database/functions.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+dotenv.config();
 
 const router = express.Router();
+const JWT_SECRET = process.env.JWT_SECRET;
 
 /*
 
@@ -114,6 +118,15 @@ router.get("/categorias", async (_, res) => {
 });
 
 router.post("/cadastro", async (req, res) => {
+  /*{
+  "cep": "",
+  "numero": "",
+  "complemento": "",
+  "nome": "",
+  "telefone": "",
+  "senha": "",
+  "email": ""
+}*/
   try {
     const request = req.body;
 
@@ -140,13 +153,14 @@ router.post("/cadastro", async (req, res) => {
     ];
 
     // Criando o endereço
-    await createEndereco(endereco);
+    let Id_end = await getEndereco(cep, request.numero);
 
-    // Recuperando o ID do endereço recém-criado
-    const idEndereco = await getEndereco(cep, request.numero);
-
-    if (!idEndereco || idEndereco.length === 0) {
-      return res.status(500).send("Erro ao recuperar o endereço");
+    if (!Id_end || Id_end.length === 0) {
+      await createEndereco(endereco);
+      Id_end = await getEndereco(cep, request.numero);
+      if (!Id_end || Id_end.length === 0) {
+        return res.status(500).send("Erro ao recuperar o endereço");
+      }
     }
 
     const cliente = [
@@ -154,7 +168,7 @@ router.post("/cadastro", async (req, res) => {
       request.telefone,
       request.email,
       senhaEncriptada,
-      idEndereco[0].Id_end,
+      Id_end[0].Id_end,
     ];
 
     // Criando o cliente
@@ -168,15 +182,44 @@ router.post("/cadastro", async (req, res) => {
   }
 });
 
-router.get("/endereco", async (_, res) => {
+router.post("/login", async (req, res) => {
   try {
-    const data = await getEnderecos();
-    res.send(data);
+    const request = req.body;
+
+    if (!request.email || !request.senha) {
+      return res.status(400).send("Email e senha são obrigatórios");
+    }
+
+    const cliente = await getClienteEmail(request.email);
+    if (!cliente || cliente.length === 0) {
+      return res.status(404).send("Cliente não encontrado");
+    }
+
+    const senhaValida = await bcrypt.compare(
+      request.senha,
+      cliente[0].Senha_pes
+    );
+    if (!senhaValida) {
+      return res.status(401).send("Senha incorreta");
+    }
+
+    const token = jwt.sign(
+      {
+        id: cliente[0].Id_pes,
+        nome: cliente[0].Nome_pes,
+        tipo: cliente[0].Tipo_pes,
+      },
+      JWT_SECRET,
+      { expiresIn: "2m" }
+    );
+
+    res.send({ token });
   } catch (error) {
     res.status(500).send({ error: error.message });
   }
 });
 
+//vai virar rota privada
 router.post("/pedido", async (req, res) => {
   try {
     const request = req.body;

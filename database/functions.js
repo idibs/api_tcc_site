@@ -245,3 +245,33 @@ export function getOutrosProdutosIdByNome(nome) {
     });
   });
 }
+
+export function getClienteEmail(login) {
+  const conn = connection();
+  return new Promise((resolve, reject) => {
+    const sql = `SELECT * FROM pessoa WHERE Email_pes = ?;`;
+    conn.query(sql, login, (error, results) => {
+      conn.end();
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+}
+
+export function getClienteSenha(login) {
+  const conn = connection();
+  return new Promise((resolve, reject) => {
+    const sql = `SELECT * FROM pessoa WHERE Senha_pes = ?;`;
+    conn.query(sql, login, (error, results) => {
+      conn.end();
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+}
