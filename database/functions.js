@@ -1,5 +1,35 @@
 import connection from "./connection.js";
 
+export function deleteOutrosProdutos(id) {
+  const conn = connection();
+  const query = `DELETE FROM outros_produtos WHERE Id_out = ?`;
+  return new Promise((resolve, reject) => {
+    conn.query(query, id, (error, results) => {
+      conn.end();
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+}
+
+export function deleteProdutosEnsacados(id) {
+  const conn = connection();
+  const query = `DELETE FROM produto_ensacado WHERE Id_ens = ?`;
+  return new Promise((resolve, reject) => {
+    conn.query(query, id, (error, results) => {
+      conn.end();
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+}
+
 export function createEndereco(data) {
   const conn = connection();
   const query = `INSERT INTO Endereco (Rua_end, Numero_end, Bairro_end, Cep_end, Complemento_end) VALUES (?, ?, ?, ?, ?)`;
@@ -78,6 +108,21 @@ export function getCereais() {
                   Foto_ens as Foto
                 FROM produto_ensacado;`;
     conn.query(sql, (error, results) => {
+      conn.end();
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+}
+
+export function getCereaisByIdNome(id, nomeProduto) {
+  const conn = connection();
+  return new Promise((resolve, reject) => {
+    const sql = `SELECT * FROM produto_ensacado WHERE Id_ens = ? AND Nome_ens = ?;`;
+    conn.query(sql, [id, nomeProduto], (error, results) => {
       conn.end();
       if (error) {
         reject(error);

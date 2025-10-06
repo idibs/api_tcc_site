@@ -7,6 +7,9 @@ import {
   getEndereco,
   createCliente,
   getClienteEmail,
+  deleteOutrosProdutos,
+  deleteProdutosEnsacados,
+  getCereaisByIdNome
 } from "../database/functions.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -33,6 +36,29 @@ router.get("/produtos", async (_, res) => {
     res.status(500).send({ error: error.message });
   }
 });
+
+router.delete("/produtos/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const nomeProduto = req.body;
+
+    if (!id) {
+      return res.status(500).send("Id necessário");
+    }
+
+    const results = await getCereaisByIdNome(id, nomeProduto.nome);
+
+    if (!results || results.length === 0) {
+      await deleteOutrosProdutos(id);
+    } else {
+      await deleteProdutosEnsacados(id);
+    }
+
+    res.status(200).send("deletado")
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+})
 
 router.get("/categorias", async (_, res) => {
   try {
