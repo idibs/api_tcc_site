@@ -104,6 +104,7 @@ export function getCereais() {
                   Id_ens as Id, 
                   Nome_ens as Nome,  
                   Peso_ens as Peso, 
+                  Preco_ens as Preco,
                   Quantidade_ens as Quantidade, 
                   Codigo_ens as Codigo, 
                   Foto_ens as Foto
@@ -141,6 +142,7 @@ export function getOutrosProdutos() {
                   Id_out as Id, 
                   Nome_out as Nome, 
                   Quantidade_out as Quantidade, 
+                  Preco_out as Preco,
                   Peso_out as Peso, 
                   Codigo_out as Codigo, 
                   Foto_out as Foto,
