@@ -97,6 +97,7 @@ router.post("/cadastro", async (req, res) => {
     const data = await response.json();
 
     const endereco = [
+      /*request.localidade,*/
       data.logradouro,
       request.numero,
       data.bairro,

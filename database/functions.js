@@ -31,6 +31,7 @@ export function deleteProdutosEnsacados(id) {
 }
 
 export function createEndereco(data) {
+  /*Cidade_end*/
   const conn = connection();
   const query = `INSERT INTO Endereco (Rua_end, Numero_end, Bairro_end, Cep_end, Complemento_end) VALUES (?, ?, ?, ?, ?)`;
   return new Promise((resolve, reject) => {
