@@ -64,6 +64,7 @@ router.post("/pedido", async (req, res) => {
       const dataFormatada = dataAtual.toISOString().split("T")[0];
       const valor_total = element.preco * element.quantidade;
       const peso_total = Id_prod[0].Peso * element.quantidade;
+      const status = 'Em Orçamento'
 
       const pedido = [
         Id_pes[0].Id_pes,
@@ -74,6 +75,7 @@ router.post("/pedido", async (req, res) => {
         element.quantidade,
         peso_total,
         valor_total,
+        status,
         element.metodo_pagamento,
       ];
 

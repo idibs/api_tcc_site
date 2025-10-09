@@ -164,8 +164,8 @@ export function createPedido(pedido) {
   const conn = connection();
   return new Promise((resolve, reject) => {
     const sql = `INSERT INTO pedido_produto
-                (Id_pes, Id_ens, Id_out, Id_end, Data_ped, Quantidade_pedprod, Peso_total_pedprod, Valor_total_pedprod, Metodo_pagamento_pedprod) VALUES
-                (?, ?, ?, ?, ?, ?, ?, ?, ?);`;
+                (Id_pes, Id_ens, Id_out, Id_end, Data_pedprod, Quantidade_pedprod, Peso_total_pedprod, Valor_total_pedprod, Status_pedprod, Metodo_pagamento_pedprod) VALUES
+                (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`;
     conn.query(sql, pedido, (error, results) => {
       conn.end();
       if (error) {
