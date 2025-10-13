@@ -9,7 +9,9 @@ import {
   getClienteEmail,
   deleteOutrosProdutos,
   deleteProdutosEnsacados,
-  getCereaisByIdNome
+  getCereaisByIdNome,
+  getCerealById,
+  getOutroProdutoById
 } from "../database/functions.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -27,6 +29,27 @@ router.get("/cereais", async (_, res) => {
     res.status(500).send({ error: error.message });
   }
 });
+
+router.get("/produtos/:categoria/:id", async (req, res) => {
+  try {
+    const id = req.params.id
+    const categoria = req.params.categoria
+    let response = {}
+
+    if (categoria == 'variedade' || categoria == 'ração') {
+      response = await getOutroProdutoById(id)
+    } else if (categoria == 'cereal') {
+      response = await getCerealById(id)
+    } else {
+      return res.status(500).send("Categoria Obrigatória");
+    }
+
+    res.status(200).send(response[0])
+
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+})
 
 router.get("/produtos", async (_, res) => {
   try {

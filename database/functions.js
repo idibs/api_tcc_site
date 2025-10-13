@@ -120,6 +120,56 @@ export function getCereais() {
   });
 }
 
+export function getCerealById(id) {
+  const conn = connection();
+  return new Promise((resolve, reject) => {
+    const sql = `SELECT 
+                  Id_ens as Id, 
+                  Nome_ens as Nome,  
+                  Peso_ens as Peso, 
+                  Preco_ens as Preco,
+                  Quantidade_ens as Quantidade, 
+                  Codigo_ens as Codigo, 
+                  Foto_ens as Foto
+                FROM produto_ensacado
+                WHERE Id_ens = ?;`;
+    conn.query(sql, [id], (error, results) => {
+      conn.end();
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+}
+
+export function getOutroProdutoById(id) {
+  const conn = connection();
+  return new Promise((resolve, reject) => {
+    const sql = `SELECT 
+                  Id_out as Id, 
+                  Nome_out as Nome, 
+                  Quantidade_out as Quantidade, 
+                  Preco_med_out as Preco,
+                  Peso_out as Peso, 
+                  Codigo_out as Codigo, 
+                  Foto_out as Foto,
+                  Nome_categ as Categoria
+                FROM outros_produtos p
+                INNER JOIN categoria c ON p.Id_categ = c.Id_categ
+                WHERE Id_out = ?;`;
+    conn.query(sql, [id], (error, results) => {
+      conn.end();
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+}
+
 export function getCereaisByIdNome(id, nomeProduto) {
   const conn = connection();
   return new Promise((resolve, reject) => {
