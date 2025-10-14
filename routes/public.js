@@ -11,7 +11,7 @@ import {
   deleteProdutosEnsacados,
   getCereaisByIdNome,
   getCerealById,
-  getOutroProdutoById
+  getOutroProdutoById,
 } from "../database/functions.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -32,24 +32,23 @@ router.get("/cereais", async (_, res) => {
 
 router.get("/produtos/:categoria/:id", async (req, res) => {
   try {
-    const id = req.params.id
-    const categoria = req.params.categoria
-    let response = {}
+    const id = req.params.id;
+    const categoria = req.params.categoria;
+    let response = {};
 
-    if (categoria == 'variedade' || categoria == 'ração') {
-      response = await getOutroProdutoById(id)
-    } else if (categoria == 'cereal') {
-      response = await getCerealById(id)
+    if (categoria == "variedade" || categoria == "ração") {
+      response = await getOutroProdutoById(id);
+    } else if (categoria == "cereal") {
+      response = await getCerealById(id);
     } else {
       return res.status(500).send("Categoria Obrigatória");
     }
 
-    res.status(200).send(response[0])
-
+    res.status(200).send(response[0]);
   } catch (error) {
     res.status(500).send({ error: error.message });
   }
-})
+});
 
 router.get("/produtos", async (_, res) => {
   try {
@@ -77,11 +76,11 @@ router.delete("/produtos/:id", async (req, res) => {
       await deleteProdutosEnsacados(id);
     }
 
-    res.status(200).send("deletado")
+    res.status(200).send("deletado");
   } catch (error) {
     res.status(500).send({ error: error.message });
   }
-})
+});
 
 router.get("/categorias", async (_, res) => {
   try {
@@ -125,6 +124,7 @@ router.post("/cadastro", async (req, res) => {
       request.numero,
       data.bairro,
       request.cep,
+      data.localidade,
       request.complemento,
     ];
 
