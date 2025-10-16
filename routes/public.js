@@ -36,9 +36,9 @@ router.get("/produtos/:categoria/:id", async (req, res) => {
     const categoria = req.params.categoria;
     let response = {};
 
-    if (categoria == "variedade" || categoria == "ração") {
+    if (categoria == "variedades" || categoria == "rações") {
       response = await getOutroProdutoById(id);
-    } else if (categoria == "cereal") {
+    } else if (categoria == "cereais") {
       response = await getCerealById(id);
     } else {
       return res.status(500).send("Categoria Obrigatória");
