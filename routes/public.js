@@ -186,7 +186,7 @@ router.post("/login", async (req, res) => {
         tipo: cliente[0].Tipo_pes,
       },
       JWT_SECRET,
-      { expiresIn: "2m" }
+      { expiresIn: "5m" }
     );
 
     res.send({ token });
