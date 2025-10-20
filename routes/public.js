@@ -3,7 +3,7 @@ import {
   getOutrosProdutos,
   getCategorias,
   createEndereco,
-  getCereais,
+  getProdutos,
   getEndereco,
   createCliente,
   getClienteEmail,
@@ -23,7 +23,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 router.get("/cereais", async (_, res) => {
   try {
-    const data = await getCereais();
+    const data = await getProdutos();
     res.send(data);
   } catch (error) {
     res.status(500).send({ error: error.message });

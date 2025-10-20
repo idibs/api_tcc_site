@@ -97,18 +97,17 @@ export function getCategorias() {
   });
 }
 
-export function getCereais() {
+export function getProdutos() {
   const conn = connection();
   return new Promise((resolve, reject) => {
     const sql = `SELECT 
-                  Id_ens as Id, 
-                  Nome_ens as Nome,  
-                  Peso_ens as Peso, 
-                  Preco_ens as Preco,
-                  Quantidade_ens as Quantidade, 
-                  Codigo_ens as Codigo, 
-                  Foto_ens as Foto
-                FROM produto_ensacado;`;
+                  Id_prod AS Id, 
+                  Nome_prod as Nome, 
+                  Preco_med_prod as Preco, 
+                  Quantidade_prod as Quantidade, 
+                  Codigo_prod as Codigo, 
+                  Foto_prod as Foto
+                FROM produto;`;
     conn.query(sql, (error, results) => {
       conn.end();
       if (error) {
