@@ -190,6 +190,25 @@ export function getProdutoById(id) {
   });
 }
 
+export function getEnsacadosPeso(id_prod) {
+  const conn = connection();
+  return new Promise((resolve, reject) => {
+    const sql = `SELECT 
+                  Peso_ens as Peso, 
+                  Quantidade_ens as Quantidade
+                FROM produto_ensacado
+                WHERE Id_prod = ?;`;
+    conn.query(sql, [id_prod], (error, results) => {
+      conn.end();
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+}
+
 export function getOutroProdutoById(id) {
   const conn = connection();
   return new Promise((resolve, reject) => {

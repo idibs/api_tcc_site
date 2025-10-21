@@ -12,7 +12,8 @@ import {
   getCereaisByIdNome,
   getProdutoById,
   getOutroProdutoById,
-  getEnsacados
+  getEnsacados,
+  getEnsacadosPeso
 } from "../database/functions.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -55,6 +56,15 @@ router.get("/produtos/:categoria/:id", async (req, res) => {
     }
 
     res.status(200).send(response[0]);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
+
+router.get("/ensacados/preco", async (req, res) => {
+  try {
+    const id_prod = req.body.id
+    response = await getEnsacadosPeso(id)
   } catch (error) {
     res.status(500).send({ error: error.message });
   }
