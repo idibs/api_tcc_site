@@ -172,7 +172,7 @@ export function getProdutoById(id) {
     const sql = `SELECT 
                   Id_prod as Id, 
                   Nome_prod as Nome,  
-                  Preco_medio_prod as Preco,
+                  Preco_med_prod as Preco,
                   Quantidade_prod as Quantidade, 
                   Codigo_prod as Codigo, 
                   Foto_prod as Foto,
