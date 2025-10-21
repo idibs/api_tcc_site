@@ -177,8 +177,8 @@ export function getProdutoById(id) {
                   Codigo_prod as Codigo, 
                   Foto_prod as Foto,
                   Descricao_prod as Descricao
-                FROM produto_ensacado
-                WHERE Id_ens = ?;`;
+                FROM produto
+                WHERE Id_prod = ?;`;
     conn.query(sql, [id], (error, results) => {
       conn.end();
       if (error) {
