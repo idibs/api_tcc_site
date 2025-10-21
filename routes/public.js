@@ -10,8 +10,9 @@ import {
   deleteOutrosProdutos,
   deleteProdutosEnsacados,
   getCereaisByIdNome,
-  getCerealById,
+  getProdutoById,
   getOutroProdutoById,
+  getEnsacados
 } from "../database/functions.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -20,6 +21,15 @@ dotenv.config();
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET;
+
+router.get("/ensacados", async (_, res) => {
+  try {
+    const data = await getEnsacados();
+    res.send(data);
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
 
 router.get("/cereais", async (_, res) => {
   try {
@@ -39,7 +49,7 @@ router.get("/produtos/:categoria/:id", async (req, res) => {
     if (categoria == "variedades" || categoria == "rações") {
       response = await getOutroProdutoById(id);
     } else if (categoria == "cereais") {
-      response = await getCerealById(id);
+      response = await getProdutoById(id);
     } else {
       return res.status(500).send("Categoria Obrigatória");
     }

@@ -97,6 +97,29 @@ export function getCategorias() {
   });
 }
 
+export function getEnsacados() {
+  const conn = connection();
+  return new Promise((resolve, reject) => {
+    const sql = `SELECT 
+                  Id_ens as Id, 
+                  Nome_ens as Nome,  
+                  Peso_ens as Peso, 
+                  Preco_ens as Preco,
+                  Quantidade_ens as Quantidade, 
+                  Codigo_ens as Codigo, 
+                  Foto_ens as Foto
+                FROM produto_ensacado;`;
+    conn.query(sql, (error, results) => {
+      conn.end();
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+}
+
 export function getProdutos() {
   const conn = connection();
   return new Promise((resolve, reject) => {
@@ -119,7 +142,7 @@ export function getProdutos() {
   });
 }
 
-export function getCerealById(id) {
+export function getEnsacadoById(id) {
   const conn = connection();
   return new Promise((resolve, reject) => {
     const sql = `SELECT 
@@ -130,6 +153,30 @@ export function getCerealById(id) {
                   Quantidade_ens as Quantidade, 
                   Codigo_ens as Codigo, 
                   Foto_ens as Foto
+                FROM produto_ensacado
+                WHERE Id_ens = ?;`;
+    conn.query(sql, [id], (error, results) => {
+      conn.end();
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+}
+
+export function getProdutoById(id) {
+  const conn = connection();
+  return new Promise((resolve, reject) => {
+    const sql = `SELECT 
+                  Id_prod as Id, 
+                  Nome_prod as Nome,  
+                  Preco_medio_prod as Preco,
+                  Quantidade_prod as Quantidade, 
+                  Codigo_prod as Codigo, 
+                  Foto_prod as Foto,
+                  Descricao_prod as Descricao
                 FROM produto_ensacado
                 WHERE Id_ens = ?;`;
     conn.query(sql, [id], (error, results) => {
