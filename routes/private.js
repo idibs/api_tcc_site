@@ -32,6 +32,7 @@ router.post("/pedido", async (req, res) => {
         element.numero,
         element.bairro,
         element.cep,
+        element.cidade,
         element.complemento,
       ];
 
