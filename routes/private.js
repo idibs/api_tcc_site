@@ -5,7 +5,7 @@ import {
   getOutrosProdutosIdByNome,
   getEndereco,
   createPedido,
-  createEndereco
+  createEndereco,
 } from "../database/functions.js";
 
 const router = express.Router();
@@ -65,7 +65,8 @@ router.post("/pedido", async (req, res) => {
       const dataFormatada = dataAtual.toISOString().split("T")[0];
       const valor_total = element.preco * element.quantidade;
       const peso_total = Id_prod[0].Peso * element.quantidade;
-      const status = 'Em Orçamento'
+      const status =
+        element.Status_pedprod === "Em analise" ? "Em analise" : "Em Orçamento";
 
       const pedido = [
         Id_pes[0].Id_pes,
