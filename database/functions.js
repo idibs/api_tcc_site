@@ -30,13 +30,13 @@ export function deleteProdutosEnsacados(id) {
   });
 }
 
-export function createEndereco(data) {
+export function createEndereco(data, conn = null) {
   /*Cidade_end*/
-  const conn = connection();
+  const localConn = conn ? conn : connection();
   const query = `INSERT INTO Endereco (Rua_end, Numero_end, Bairro_end, Cep_end, Cidade_end, Complemento_end) VALUES (?, ?, ?, ?, ?, ?)`;
   return new Promise((resolve, reject) => {
-    conn.query(query, data, (error, results) => {
-      conn.end();
+    localConn.query(query, data, (error, results) => {
+      if (!conn) localConn.end();
       if (error) {
         reject(error);
       } else {
@@ -46,12 +46,12 @@ export function createEndereco(data) {
   });
 }
 
-export function getEndereco(cep, numero) {
-  const conn = connection();
+export function getEndereco(cep, numero, conn = null) {
+  const localConn = conn ? conn : connection();
   const query = `select Id_end from endereco WHERE Cep_end = ? and Numero_end = ?`;
   return new Promise((resolve, reject) => {
-    conn.query(query, [cep, numero], (error, results) => {
-      conn.end();
+    localConn.query(query, [cep, numero], (error, results) => {
+      if (!conn) localConn.end();
       if (error) {
         reject(error);
       } else {
@@ -275,14 +275,14 @@ export function getOutrosProdutos() {
   });
 }
 
-export function createPedido(pedido) {
-  const conn = connection();
+export function createPedido(pedido, conn = null) {
+  const localConn = conn ? conn : connection();
   return new Promise((resolve, reject) => {
     const sql = `INSERT INTO pedido_produto
                 (Id_pes, Id_ens, Id_out, Id_end, Data_pedprod, Quantidade_pedprod, Peso_total_pedprod, Valor_total_pedprod, Status_pedprod, Metodo_pagamento_pedprod) VALUES
                 (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`;
-    conn.query(sql, pedido, (error, results) => {
-      conn.end();
+    localConn.query(sql, pedido, (error, results) => {
+      if (!conn) localConn.end();
       if (error) {
         reject(error);
       } else {
@@ -292,12 +292,12 @@ export function createPedido(pedido) {
   });
 }
 
-export function getClienteIdByNome(nome) {
-  const conn = connection();
+export function getClienteIdByNome(nome, conn = null) {
+  const localConn = conn ? conn : connection();
   return new Promise((resolve, reject) => {
     const sql = `SELECT Id_pes FROM pessoa WHERE Tipo_pes = 'Cliente' and Nome_pes = ?;`;
-    conn.query(sql, nome, (error, results) => {
-      conn.end();
+    localConn.query(sql, nome, (error, results) => {
+      if (!conn) localConn.end();
       if (error) {
         reject(error);
       } else {
@@ -307,12 +307,12 @@ export function getClienteIdByNome(nome) {
   });
 }
 
-export function getCerealIdByNome(nome) {
-  const conn = connection();
+export function getCerealIdByNome(nome, conn = null) {
+  const localConn = conn ? conn : connection();
   return new Promise((resolve, reject) => {
     const sql = `SELECT Id_ens, Peso_ens as Peso FROM produto_ensacado WHERE Nome_ens = ?;`;
-    conn.query(sql, nome, (error, results) => {
-      conn.end();
+    localConn.query(sql, nome, (error, results) => {
+      if (!conn) localConn.end();
       if (error) {
         reject(error);
       } else {
@@ -322,12 +322,12 @@ export function getCerealIdByNome(nome) {
   });
 }
 
-export function getOutrosProdutosIdByNome(nome) {
-  const conn = connection();
+export function getOutrosProdutosIdByNome(nome, conn = null) {
+  const localConn = conn ? conn : connection();
   return new Promise((resolve, reject) => {
     const sql = `SELECT Id_out, Peso_out as Peso FROM outros_produtos WHERE Nome_out = ?;`;
-    conn.query(sql, nome, (error, results) => {
-      conn.end();
+    localConn.query(sql, nome, (error, results) => {
+      if (!conn) localConn.end();
       if (error) {
         reject(error);
       } else {

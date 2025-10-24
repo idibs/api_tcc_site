@@ -1,4 +1,5 @@
 import express from "express";
+import connection from "../database/connection.js";
 import {
   getClienteIdByNome,
   getCerealIdByNome,
@@ -11,20 +12,14 @@ import {
 const router = express.Router();
 
 router.post("/pedido", async (req, res) => {
-  /*{
-  "cep": "",
-  "numero": "",
-  "complemento": "",
-  "bairro": "",
-  "logradouro": "",
-  "nome": "",
-  "produto": "",
-  "metodo_pagamento": "",
-  "preco": ,
-  "quantidade": 
-}*/
+  /* request: array de objetos conforme seu exemplo */
+  const request = req.body;
+  const conn = connection();
   try {
-    const request = req.body;
+    // start transaction
+    await new Promise((resolve, reject) =>
+      conn.beginTransaction((err) => (err ? reject(err) : resolve()))
+    );
 
     for (const element of request) {
       const endereco = [
@@ -36,28 +31,30 @@ router.post("/pedido", async (req, res) => {
         element.complemento,
       ];
 
-      let Id_end = await getEndereco(element.cep, element.numero);
+      let Id_end = await getEndereco(element.cep, element.numero, conn);
 
       if (!Id_end || Id_end.length === 0) {
-        await createEndereco(endereco);
-        Id_end = await getEndereco(element.cep, element.numero);
+        await createEndereco(endereco, conn);
+        Id_end = await getEndereco(element.cep, element.numero, conn);
         if (!Id_end || Id_end.length === 0) {
-          return res.status(500).send("Erro ao recuperar o endereço");
+          throw new Error(
+            "Erro ao recuperar o endereço após tentativa de criação"
+          );
         }
       }
 
-      const Id_pes = await getClienteIdByNome(element.nome);
+      const Id_pes = await getClienteIdByNome(element.nome, conn);
 
       if (!Id_pes || Id_pes.length === 0) {
-        return res.status(404).send("Cliente não encontrado");
+        throw new Error("Cliente não encontrado");
       }
 
-      let Id_prod = await getCerealIdByNome(element.produto);
+      let Id_prod = await getCerealIdByNome(element.produto, conn);
 
       if (!Id_prod || Id_prod.length === 0) {
-        Id_prod = await getOutrosProdutosIdByNome(element.produto);
+        Id_prod = await getOutrosProdutosIdByNome(element.produto, conn);
         if (!Id_prod || Id_prod.length === 0) {
-          return res.status(404).send("Produto não encontrado");
+          throw new Error("Produto não encontrado");
         }
       }
 
@@ -81,12 +78,30 @@ router.post("/pedido", async (req, res) => {
         element.metodo_pagamento,
       ];
 
-      await createPedido(pedido);
+      await createPedido(pedido, conn);
     }
 
+    await new Promise((resolve, reject) =>
+      conn.commit((err) => (err ? reject(err) : resolve()))
+    );
+    conn.end();
     res.status(201).send("Pedido realizado com sucesso");
   } catch (error) {
-    res.status(500).send({ error: error.message });
+    try {
+      await new Promise((resolve, reject) =>
+        conn.rollback((err) => (err ? reject(err) : resolve()))
+      );
+    } catch (rbErr) {
+      console.error("Rollback falhou:", rbErr);
+    }
+    conn.end();
+    res
+      .status(500)
+      .send({
+        error:
+          error.message ||
+          "Erro ao processar pedido, nenhuma alteração foi salva.",
+      });
   }
 });
 
