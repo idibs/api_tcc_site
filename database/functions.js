@@ -366,3 +366,15 @@ export function getClienteSenha(login) {
     });
   });
 }
+
+export async function getClienteByTelefone(telefone) {
+  const conn = connection();
+  const sql = `SELECT * FROM pessoa WHERE Telefone_pes = ? LIMIT 1`;
+  return new Promise((resolve, reject) => {
+    conn.query(sql, [telefone], (err, results) => {
+      conn.end();
+      if (err) return reject(err);
+      resolve(results);
+    });
+  });
+}

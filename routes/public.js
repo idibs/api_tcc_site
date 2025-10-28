@@ -13,7 +13,8 @@ import {
   getProdutoById,
   getOutroProdutoById,
   getEnsacados,
-  getEnsacadosPeso
+  getEnsacadosPeso,
+  getClienteByTelefone,
 } from "../database/functions.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -63,8 +64,8 @@ router.get("/produtos/:categoria/:id", async (req, res) => {
 
 router.get("/ensacados/preco", async (req, res) => {
   try {
-    const id_prod = req.body.id
-    response = await getEnsacadosPeso(id)
+    const id_prod = req.body.id;
+    response = await getEnsacadosPeso(id);
   } catch (error) {
     res.status(500).send({ error: error.message });
   }
@@ -112,69 +113,110 @@ router.get("/categorias", async (_, res) => {
 });
 
 router.post("/cadastro", async (req, res) => {
-  /*{
-  "cep": "",
-  "numero": "",
-  "complemento": "",
-  "nome": "",
-  "telefone": "",
-  "senha": "",
-  "email": ""
-}*/
+  /* esperado (campos opcionais):
+  {
+    "cep": "01001000",
+    "numero": "123",
+    "complemento": "Apto 1",
+    "nome": "Nome Cliente",
+    "telefone": "5511999999999",
+    "senha": "opcional",
+    "email": "opcional@ex.com"
+  }
+  */
   try {
-    const request = req.body;
+    const request = req.body || {};
 
-    // Encriptando a senha com bcrypt
-    const senhaEncriptada = await bcrypt.hash(request.senha, 10);
+    const nome = (request.nome || "").trim();
+    const telefone = (request.telefone || "").trim();
+    const cep = (request.cep || "").trim();
+    const numero = (request.numero || "").trim();
+    const complemento = (request.complemento || "").trim();
+    const email =
+      request.email && String(request.email).trim() !== ""
+        ? request.email
+        : null;
 
-    const cep = request.cep;
-
-    // Usando 'await' para fazer a requisição de forma assíncrona
-    const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-
-    if (!response.ok) {
-      return res.status(500).send("Erro ao buscar CEP");
+    if (!nome || !telefone) {
+      return res
+        .status(400)
+        .send({ error: "nome e telefone são obrigatórios" });
     }
 
-    const data = await response.json();
+    // Verifica se já existe cliente (ajuste getClienteByTelefone conforme sua implementação)
+    let existing = null;
+    try {
+      existing = await getClienteByTelefone(telefone);
+    } catch (err) {
+      console.error("Erro ao checar cliente existente:", err);
+    }
 
-    const endereco = [
-      /*request.localidade,*/
-      data.logradouro,
-      request.numero,
-      data.bairro,
-      request.cep,
-      data.localidade,
-      request.complemento,
-    ];
+    if (existing && existing.length > 0) {
+      return res.status(200).send({
+        message: "Cliente já existe",
+        clienteId: existing[0].Id_cli || null,
+      });
+    }
 
-    // Criando o endereço
-    let Id_end = await getEndereco(cep, request.numero);
-
-    if (!Id_end || Id_end.length === 0) {
-      await createEndereco(endereco);
-      Id_end = await getEndereco(cep, request.numero);
-      if (!Id_end || Id_end.length === 0) {
-        return res.status(500).send("Erro ao recuperar o endereço");
+    // Busca dados do CEP (se informado)
+    let cepData = null;
+    if (cep) {
+      try {
+        const responseCep = await fetch(
+          `https://viacep.com.br/ws/${cep}/json/`
+        );
+        if (responseCep && responseCep.ok) {
+          cepData = await responseCep.json();
+        }
+      } catch (e) {
+        // não fatal — seguimos com nulls
+        console.warn(
+          "Falha ao consultar viacep:",
+          e && e.message ? e.message : e
+        );
       }
     }
 
+    const endereco = [
+      cepData ? cepData.logradouro : null,
+      numero || null,
+      cepData ? cepData.bairro : null,
+      cep || null,
+      cepData ? cepData.localidade : null,
+      complemento || null,
+    ];
+
+    let Id_end = await getEndereco(cep, numero);
+    if (!Id_end || Id_end.length === 0) {
+      await createEndereco(endereco);
+      Id_end = await getEndereco(cep, numero);
+      if (!Id_end || Id_end.length === 0) {
+        return res.status(500).send({ error: "Erro ao recuperar o endereço" });
+      }
+    }
+
+    // SENHA: se fornecida, encripta; caso contrário, guarda NULL
+    let senhaEncriptada = null;
+    if (request.senha && String(request.senha).trim() !== "") {
+      senhaEncriptada = await bcrypt.hash(String(request.senha), 10);
+    } else {
+      senhaEncriptada = null; // explicitamente NULL
+    }
+
     const cliente = [
-      request.nome,
-      request.telefone,
-      request.email,
-      senhaEncriptada,
+      nome,
+      telefone,
+      email, // já é null quando não enviado
+      senhaEncriptada, // null se não veio
       Id_end[0].Id_end,
     ];
 
-    // Criando o cliente
     await createCliente(cliente);
 
-    // Resposta de sucesso
-    res.status(201).send("Cadastro realizado com sucesso");
+    return res.status(201).send({ message: "Cliente criado com sucesso" });
   } catch (error) {
-    console.error(error); // Log do erro para debug
-    res.status(500).send({ error: error.message });
+    console.error(error);
+    return res.status(500).send({ error: error.message || "Erro interno" });
   }
 });
 
