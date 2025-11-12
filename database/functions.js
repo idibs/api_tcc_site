@@ -378,3 +378,70 @@ export async function getClienteByTelefone(telefone) {
     });
   });
 }
+
+export function getUsuarioById(id) {
+  const conn = connection();
+  const sql = `SELECT 
+                Id_pes, 
+                Nome_pes, 
+                Telefone_pes, 
+                Email_pes, 
+                Tipo_pes, 
+                Id_end
+               FROM pessoa
+               WHERE Id_pes = ?;`;
+  return new Promise((resolve, reject) => {
+    conn.query(sql, [id], (error, results) => {
+      conn.end();
+      if (error) return reject(error);
+      resolve(results);
+    });
+  });
+}
+
+/**
+ * Atualiza campos da tabela pessoa. `data` deve ser um objeto com chaves:
+ *  { nome, telefone, email, senha }
+ * - Se senha estiver undefined ou vazia, ela NÃO será atualizada.
+ * - A senha deve vir já hasheada (faça bcrypt.hash no route).
+ */
+export function updateUsuarioById(id, data) {
+  const conn = connection();
+
+  const sets = [];
+  const params = [];
+
+  if (data.nome !== undefined) {
+    sets.push("Nome_pes = ?");
+    params.push(data.nome);
+  }
+  if (data.telefone !== undefined) {
+    sets.push("Telefone_pes = ?");
+    params.push(data.telefone);
+  }
+  if (data.email !== undefined) {
+    sets.push("Email_pes = ?");
+    params.push(data.email);
+  }
+  // senha: atualizar somente se foi enviada (e não vazia)
+  if (data.senha !== undefined && data.senha !== null && data.senha !== "") {
+    sets.push("Senha_pes = ?");
+    params.push(data.senha);
+  }
+
+  if (sets.length === 0) {
+    // nada para atualizar
+    return Promise.resolve({ affectedRows: 0 });
+  }
+
+  const sql = `UPDATE pessoa SET ${sets.join(", ")} WHERE Id_pes = ?;`;
+  params.push(id);
+
+  return new Promise((resolve, reject) => {
+    conn.query(sql, params, (error, results) => {
+      conn.end();
+      if (error) return reject(error);
+      resolve(results);
+    });
+  });
+}

@@ -15,6 +15,8 @@ import {
   getEnsacados,
   getEnsacadosPeso,
   getClienteByTelefone,
+  getUsuarioById,
+  updateUsuarioById,
 } from "../database/functions.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -258,3 +260,98 @@ router.post("/login", async (req, res) => {
 });
 
 export default router;
+
+function verifyToken(req, res, next) {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).send({ error: "Token não fornecido" });
+  const parts = auth.split(" ");
+  if (parts.length !== 2 || parts[0] !== "Bearer")
+    return res.status(401).send({ error: "Formato do token inválido" });
+
+  const token = parts[1];
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    // normaliza: id ou userId
+    req.userId = decoded.id ?? decoded.userId;
+    next();
+  } catch (err) {
+    return res.status(401).send({ error: "Token inválido" });
+  }
+}
+
+/**
+ * GET /usuarios/:id
+ * Retorna os dados do usuário mapeados para o formato que o front espera.
+ */
+router.get("/usuarios/:id", verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // permite apenas acessar os próprios dados (remova/ajuste se quiser admins)
+    if (String(req.userId) !== String(id)) {
+      return res.status(403).send({ error: "Não autorizado" });
+    }
+
+    const rows = await getUsuarioById(id);
+    if (!rows || rows.length === 0) {
+      return res.status(404).send({ error: "Usuário não encontrado" });
+    }
+
+    const r = rows[0];
+    // mapear para o formato do front (ex.: id, nome, telefone, email, tipo, enderecoId, senha)
+    const payload = {
+      id: r.Id_pes,
+      nome: r.Nome_pes,
+      telefone: r.Telefone_pes,
+      email: r.Email_pes,
+      tipo: r.Tipo_pes,
+      enderecoId: r.Id_end,
+      senha: "", // não retornar hash; front usa como "nova senha"
+    };
+
+    res.status(200).json(payload);
+  } catch (error) {
+    console.error("GET /usuarios/:id error:", error);
+    res.status(500).send({ error: error.message || "Erro interno" });
+  }
+});
+
+/**
+ * PUT /usuarios/:id
+ * Atualiza os dados do usuário. Espera body com { nome, telefone, email, senha }.
+ * - Se senha for enviada (não vazia), será hasheada antes de salvar.
+ */
+router.put("/usuarios/:id", verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (String(req.userId) !== String(id)) {
+      return res.status(403).send({ error: "Não autorizado" });
+    }
+
+    const { nome, telefone, email, senha } = req.body || {};
+
+    const updateObj = {
+      nome: nome !== undefined ? String(nome).trim() : undefined,
+      telefone: telefone !== undefined ? String(telefone).trim() : undefined,
+      email: email !== undefined ? String(email).trim() || null : undefined,
+    };
+
+    // senha: se veio preenchida, faz hash e envia pro update
+    if (senha !== undefined && senha !== null && String(senha).trim() !== "") {
+      const hash = await bcrypt.hash(String(senha), 10);
+      updateObj.senha = hash;
+    }
+
+    const result = await updateUsuarioById(id, updateObj);
+
+    if (result && result.affectedRows === 0) {
+      return res.status(400).send({ message: "Nada foi atualizado" });
+    }
+
+    return res.status(200).send({ message: "Dados atualizados com sucesso" });
+  } catch (error) {
+    console.error("PUT /usuarios/:id error:", error);
+    res.status(500).send({ error: error.message || "Erro interno" });
+  }
+});
