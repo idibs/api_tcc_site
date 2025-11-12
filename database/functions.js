@@ -381,15 +381,24 @@ export async function getClienteByTelefone(telefone) {
 
 export function getUsuarioById(id) {
   const conn = connection();
-  const sql = `SELECT 
-                Id_pes, 
-                Nome_pes, 
-                Telefone_pes, 
-                Email_pes, 
-                Tipo_pes, 
-                Id_end
-               FROM pessoa
-               WHERE Id_pes = ?;`;
+  const sql = `
+    SELECT
+      p.Id_pes,
+      p.Nome_pes,
+      p.Telefone_pes,
+      p.Email_pes,
+      p.Tipo_pes,
+      p.Id_end,
+      e.Cidade_end,
+      e.Rua_end,
+      e.Numero_end,
+      e.Bairro_end,
+      e.Cep_end,
+      e.Complemento_end
+    FROM pessoa p
+    LEFT JOIN endereco e ON p.Id_end = e.Id_end
+    WHERE p.Id_pes = ?;
+  `;
   return new Promise((resolve, reject) => {
     conn.query(sql, [id], (error, results) => {
       conn.end();
@@ -399,12 +408,6 @@ export function getUsuarioById(id) {
   });
 }
 
-/**
- * Atualiza campos da tabela pessoa. `data` deve ser um objeto com chaves:
- *  { nome, telefone, email, senha }
- * - Se senha estiver undefined ou vazia, ela NÃO será atualizada.
- * - A senha deve vir já hasheada (faça bcrypt.hash no route).
- */
 export function updateUsuarioById(id, data) {
   const conn = connection();
 
@@ -420,17 +423,16 @@ export function updateUsuarioById(id, data) {
     params.push(data.telefone);
   }
   if (data.email !== undefined) {
+    // se enviar explicitamente null, define null no DB
+    params.push(data.email === null ? null : data.email);
     sets.push("Email_pes = ?");
-    params.push(data.email);
   }
-  // senha: atualizar somente se foi enviada (e não vazia)
   if (data.senha !== undefined && data.senha !== null && data.senha !== "") {
     sets.push("Senha_pes = ?");
     params.push(data.senha);
   }
 
   if (sets.length === 0) {
-    // nada para atualizar
     return Promise.resolve({ affectedRows: 0 });
   }
 
@@ -442,6 +444,64 @@ export function updateUsuarioById(id, data) {
       conn.end();
       if (error) return reject(error);
       resolve(results);
+    });
+  });
+}
+
+export function updateEnderecoById(id, data) {
+  const conn = connection();
+  const sets = [];
+  const params = [];
+
+  if (data.cidade !== undefined) {
+    sets.push("Cidade_end = ?");
+    params.push(data.cidade);
+  }
+  if (data.rua !== undefined) {
+    sets.push("Rua_end = ?");
+    params.push(data.rua);
+  }
+  if (data.numero !== undefined) {
+    sets.push("Numero_end = ?");
+    params.push(data.numero);
+  }
+  if (data.bairro !== undefined) {
+    sets.push("Bairro_end = ?");
+    params.push(data.bairro);
+  }
+  if (data.cep !== undefined) {
+    sets.push("Cep_end = ?");
+    params.push(data.cep);
+  }
+  if (data.complemento !== undefined) {
+    sets.push("Complemento_end = ?");
+    params.push(data.complemento);
+  }
+
+  if (sets.length === 0) {
+    return Promise.resolve({ affectedRows: 0 });
+  }
+
+  const sql = `UPDATE endereco SET ${sets.join(", ")} WHERE Id_end = ?;`;
+  params.push(id);
+
+  return new Promise((resolve, reject) => {
+    conn.query(sql, params, (err, result) => {
+      conn.end();
+      if (err) return reject(err);
+      resolve(result);
+    });
+  });
+}
+
+export function updatePessoaSetEndereco(idPessoa, idEndereco) {
+  const conn = connection();
+  const sql = `UPDATE pessoa SET Id_end = ? WHERE Id_pes = ?;`;
+  return new Promise((resolve, reject) => {
+    conn.query(sql, [idEndereco, idPessoa], (err, result) => {
+      conn.end();
+      if (err) return reject(err);
+      resolve(result);
     });
   });
 }

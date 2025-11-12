@@ -17,6 +17,8 @@ import {
   getClienteByTelefone,
   getUsuarioById,
   updateUsuarioById,
+  updatePessoaSetEndereco,
+  updateEnderecoById,
 } from "../database/functions.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -259,8 +261,6 @@ router.post("/login", async (req, res) => {
   }
 });
 
-export default router;
-
 function verifyToken(req, res, next) {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).send({ error: "Token não fornecido" });
@@ -279,15 +279,9 @@ function verifyToken(req, res, next) {
   }
 }
 
-/**
- * GET /usuarios/:id
- * Retorna os dados do usuário mapeados para o formato que o front espera.
- */
 router.get("/usuarios/:id", verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
-
-    // permite apenas acessar os próprios dados (remova/ajuste se quiser admins)
     if (String(req.userId) !== String(id)) {
       return res.status(403).send({ error: "Não autorizado" });
     }
@@ -298,15 +292,23 @@ router.get("/usuarios/:id", verifyToken, async (req, res) => {
     }
 
     const r = rows[0];
-    // mapear para o formato do front (ex.: id, nome, telefone, email, tipo, enderecoId, senha)
     const payload = {
       id: r.Id_pes,
       nome: r.Nome_pes,
       telefone: r.Telefone_pes,
       email: r.Email_pes,
       tipo: r.Tipo_pes,
-      enderecoId: r.Id_end,
-      senha: "", // não retornar hash; front usa como "nova senha"
+      endereco: r.Id_end
+        ? {
+            id: r.Id_end,
+            cidade: r.Cidade_end,
+            rua: r.Rua_end,
+            numero: r.Numero_end,
+            bairro: r.Bairro_end,
+            cep: r.Cep_end,
+            complemento: r.Complemento_end,
+          }
+        : null,
     };
 
     res.status(200).json(payload);
@@ -316,37 +318,84 @@ router.get("/usuarios/:id", verifyToken, async (req, res) => {
   }
 });
 
-/**
- * PUT /usuarios/:id
- * Atualiza os dados do usuário. Espera body com { nome, telefone, email, senha }.
- * - Se senha for enviada (não vazia), será hasheada antes de salvar.
- */
 router.put("/usuarios/:id", verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
-
     if (String(req.userId) !== String(id)) {
       return res.status(403).send({ error: "Não autorizado" });
     }
 
-    const { nome, telefone, email, senha } = req.body || {};
+    const { nome, telefone, email, senha, endereco } = req.body || {};
 
     const updateObj = {
       nome: nome !== undefined ? String(nome).trim() : undefined,
       telefone: telefone !== undefined ? String(telefone).trim() : undefined,
-      email: email !== undefined ? String(email).trim() || null : undefined,
+      email:
+        email !== undefined
+          ? email === null
+            ? null
+            : String(email).trim()
+          : undefined,
     };
 
-    // senha: se veio preenchida, faz hash e envia pro update
     if (senha !== undefined && senha !== null && String(senha).trim() !== "") {
       const hash = await bcrypt.hash(String(senha), 10);
       updateObj.senha = hash;
     }
 
-    const result = await updateUsuarioById(id, updateObj);
+    // Atualiza usuário (campos básicos)
+    await updateUsuarioById(id, updateObj);
 
-    if (result && result.affectedRows === 0) {
-      return res.status(400).send({ message: "Nada foi atualizado" });
+    // === Endereco: somente com cep, numero, complemento ===
+    // Esperamos endereco = { id?, cep?, numero?, complemento? }
+    if (endereco && (endereco.cep || endereco.numero || endereco.complemento)) {
+      const cepRaw = (endereco.cep || "").replace(/\D/g, "");
+      if (!cepRaw || cepRaw.length !== 8) {
+        return res
+          .status(400)
+          .send({ error: "CEP inválido. Envie 8 dígitos." });
+      }
+
+      // consulta ViaCEP no servidor para obter logradouro/bairro/cidade
+      let cepInfo = null;
+      try {
+        const resp = await fetch(`https://viacep.com.br/ws/${cepRaw}/json/`);
+        if (!resp.ok) throw new Error("Falha na consulta ViaCEP");
+        const json = await resp.json();
+        if (json.erro) {
+          return res.status(400).send({ error: "CEP não encontrado" });
+        }
+        cepInfo = json; // tem logradouro, bairro, localidade, etc
+      } catch (err) {
+        console.error("Erro ao consultar viacep:", err);
+        return res.status(500).send({ error: "Erro ao consultar CEP" });
+      }
+
+      // monta objeto completo para salvar no DB
+      const enderecoParaSalvar = {
+        rua: cepInfo.logradouro ?? null,
+        bairro: cepInfo.bairro ?? null,
+        cidade: cepInfo.localidade ?? null,
+        cep: cepRaw,
+        numero:
+          endereco.numero !== undefined
+            ? String(endereco.numero).trim()
+            : undefined,
+        complemento:
+          endereco.complemento !== undefined
+            ? String(endereco.complemento).trim()
+            : undefined,
+      };
+
+      if (endereco.id) {
+        // atualiza endereço existente
+        await updateEnderecoById(endereco.id, enderecoParaSalvar);
+      } else {
+        // cria novo endereco e associa à pessoa
+        // só cria se pelo menos cep + numero existirem (numero pode ser vazio se desejar)
+        const newEndId = await createEndereco(enderecoParaSalvar);
+        await updatePessoaSetEndereco(id, newEndId);
+      }
     }
 
     return res.status(200).send({ message: "Dados atualizados com sucesso" });
@@ -355,3 +404,5 @@ router.put("/usuarios/:id", verifyToken, async (req, res) => {
     res.status(500).send({ error: error.message || "Erro interno" });
   }
 });
+
+export default router;
