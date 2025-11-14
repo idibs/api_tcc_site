@@ -136,10 +136,11 @@ router.post("/cadastro", async (req, res) => {
     const cep = (request.cep || "").trim();
     const numero = (request.numero || "").trim();
     const complemento = (request.complemento || "").trim();
-    const email =
+    const emailRaw =
       request.email && String(request.email).trim() !== ""
-        ? request.email
+        ? String(request.email).trim()
         : null;
+    const email = emailRaw ? emailRaw.toLowerCase() : null; // normaliza para lowercase
 
     if (!nome || !telefone) {
       return res
@@ -147,18 +148,47 @@ router.post("/cadastro", async (req, res) => {
         .send({ error: "nome e telefone são obrigatórios" });
     }
 
-    // Verifica se já existe cliente (ajuste getClienteByTelefone conforme sua implementação)
-    let existing = null;
+    // coleciona campos em conflito
+    const conflicts = [];
+
+    // Verifica se já existe cliente por telefone
     try {
-      existing = await getClienteByTelefone(telefone);
+      const existingByPhone = await getClienteByTelefone(telefone);
+      if (existingByPhone && existingByPhone.length > 0) {
+        conflicts.push("telefone");
+      }
     } catch (err) {
-      console.error("Erro ao checar cliente existente:", err);
+      console.error("Erro ao checar cliente por telefone:", err);
     }
 
-    if (existing && existing.length > 0) {
-      return res.status(200).send({
-        message: "Cliente já existe",
-        clienteId: existing[0].Id_cli || null,
+    // Se veio email, verifica se já existe cliente por email
+    if (email) {
+      try {
+        const existingByEmail = await getClienteEmail(email);
+        if (existingByEmail && existingByEmail.length > 0) {
+          conflicts.push("email");
+        }
+      } catch (err) {
+        console.error("Erro ao checar cliente por email:", err);
+      }
+    }
+
+    // Se existir função getClienteByNome no escopo, usa-a para checar nome
+    try {
+      if (typeof getClienteByNome === "function") {
+        const existingByNome = await getClienteByNome(nome);
+        if (existingByNome && existingByNome.length > 0) {
+          conflicts.push("nome");
+        }
+      }
+    } catch (err) {
+      console.error("Erro ao checar cliente por nome:", err);
+    }
+
+    if (conflicts.length > 0) {
+      return res.status(409).send({
+        error: "Conflito: já existe cliente com os seguintes campos",
+        fields: conflicts,
       });
     }
 
@@ -215,7 +245,21 @@ router.post("/cadastro", async (req, res) => {
       Id_end[0].Id_end,
     ];
 
-    await createCliente(cliente);
+    try {
+      await createCliente(cliente);
+    } catch (dbErr) {
+      console.error("Erro ao inserir cliente:", dbErr);
+      if (dbErr && dbErr.code === "ER_DUP_ENTRY") {
+        return res.status(409).send({
+          error:
+            "Já existe um usuário com algum dos campos únicos (email/telefone/etc).",
+          detail: dbErr.sqlMessage,
+        });
+      }
+      return res
+        .status(500)
+        .send({ error: dbErr.message || "Erro ao criar cliente" });
+    }
 
     return res.status(201).send({ message: "Cliente criado com sucesso" });
   } catch (error) {

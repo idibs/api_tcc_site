@@ -1,1 +1,83 @@
 ao subir endereço criado sem complemento com complemento ele ignora o complemento
+
+C:\Users\Pichau\Desktop\api_tcc_site>npm start
+
+> api@1.0.0 start
+> nodemon index.js
+
+[nodemon] 3.1.10
+[nodemon] to restart at any time, enter `rs`
+[nodemon] watching path(s): *.*
+[nodemon] watching extensions: js,mjs,cjs,json
+[nodemon] starting `node index.js`
+[dotenv@17.2.3] injecting env (1) from .env -- tip: 🗂️ backup and recover secrets: https://dotenvx.com/ops
+Server running on port 8080
+Error: Duplicate entry 'lucasgardellimartins07@gmail.com' for key 'Email_pes'
+    at Packet.asError (C:\Users\Pichau\Desktop\api_tcc_site\node_modules\mysql2\lib\packets\packet.js:740:17)
+    at Query.execute (C:\Users\Pichau\Desktop\api_tcc_site\node_modules\mysql2\lib\commands\command.js:29:26)
+    at Connection.handlePacket (C:\Users\Pichau\Desktop\api_tcc_site\node_modules\mysql2\lib\base\connection.js:475:34)
+    at PacketParser.onPacket (C:\Users\Pichau\Desktop\api_tcc_site\node_modules\mysql2\lib\base\connection.js:93:12)
+    at PacketParser.executeStart (C:\Users\Pichau\Desktop\api_tcc_site\node_modules\mysql2\lib\packet_parser.js:75:16)
+    at Socket.<anonymous> (C:\Users\Pichau\Desktop\api_tcc_site\node_modules\mysql2\lib\base\connection.js:100:25)
+    at Socket.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+    at Readable.push (node:internal/streams/readable:392:5) {
+  code: 'ER_DUP_ENTRY',
+  errno: 1062,
+  sqlState: '23000',
+  sqlMessage: "Duplicate entry 'lucasgardellimartins07@gmail.com' for key 'Email_pes'",
+  sql: 'INSERT INTO pessoa (Nome_pes, \n' +
+    '                Telefone_pes, \n' +
+    '                Email_pes, \n' +
+    '                Senha_pes, \n' +
+    '                Tipo_pes, \n' +
+    '                Id_end) VALUES\n' +
+    "                ('lucas gardelli martins', '15991386482', 'lucasgardellimartins07@gmail.com', '$2b$10$MsyTlXVCn27LWjYogrrhjuhK61Kz0hGeOQxPQowCDcN4no.hLczze', 'Cliente', 12);"
+}
+Error: Duplicate entry 'teste1@email.com' for key 'Email_pes'
+    at Packet.asError (C:\Users\Pichau\Desktop\api_tcc_site\node_modules\mysql2\lib\packets\packet.js:740:17)
+    at Query.execute (C:\Users\Pichau\Desktop\api_tcc_site\node_modules\mysql2\lib\commands\command.js:29:26)
+    at Connection.handlePacket (C:\Users\Pichau\Desktop\api_tcc_site\node_modules\mysql2\lib\base\connection.js:475:34)   
+    at PacketParser.onPacket (C:\Users\Pichau\Desktop\api_tcc_site\node_modules\mysql2\lib\base\connection.js:93:12)      
+    at PacketParser.executeStart (C:\Users\Pichau\Desktop\api_tcc_site\node_modules\mysql2\lib\packet_parser.js:75:16)    
+    at Socket.<anonymous> (C:\Users\Pichau\Desktop\api_tcc_site\node_modules\mysql2\lib\base\connection.js:100:25)        
+    at Socket.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+    at Readable.push (node:internal/streams/readable:392:5) {
+  code: 'ER_DUP_ENTRY',
+  errno: 1062,
+  sqlState: '23000',
+  sqlMessage: "Duplicate entry 'teste1@email.com' for key 'Email_pes'",
+  sql: 'INSERT INTO pessoa (Nome_pes, \n' +
+    '                Telefone_pes, \n' +
+    '                Email_pes, \n' +
+    '                Senha_pes, \n' +
+    '                Tipo_pes, \n' +
+    '                Id_end) VALUES\n' +
+    "                ('teste1', '5515991386483', 'teste1@email.com', '$2b$10$flINDvWx4zUqLBiEd8qnF.bDu22CerbEZ4obXI6JImam1aAuaXYPq', 'Cliente', 15);"
+}
+Error: Duplicate entry 'teste1@email.com' for key 'Email_pes'
+    at Packet.asError (C:\Users\Pichau\Desktop\api_tcc_site\node_modules\mysql2\lib\packets\packet.js:740:17)
+    at Query.execute (C:\Users\Pichau\Desktop\api_tcc_site\node_modules\mysql2\lib\commands\command.js:29:26)
+    at Connection.handlePacket (C:\Users\Pichau\Desktop\api_tcc_site\node_modules\mysql2\lib\base\connection.js:475:34)   
+    at PacketParser.onPacket (C:\Users\Pichau\Desktop\api_tcc_site\node_modules\mysql2\lib\base\connection.js:93:12)      
+    at PacketParser.executeStart (C:\Users\Pichau\Desktop\api_tcc_site\node_modules\mysql2\lib\packet_parser.js:75:16)    
+    at Socket.<anonymous> (C:\Users\Pichau\Desktop\api_tcc_site\node_modules\mysql2\lib\base\connection.js:100:25)        
+    at Socket.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+    at Readable.push (node:internal/streams/readable:392:5) {
+  code: 'ER_DUP_ENTRY',
+  errno: 1062,
+  sqlState: '23000',
+  sqlMessage: "Duplicate entry 'teste1@email.com' for key 'Email_pes'",
+  sql: 'INSERT INTO pessoa (Nome_pes, \n' +
+    '                Telefone_pes, \n' +
+    '                Email_pes, \n' +
+    '                Senha_pes, \n' +
+    '                Tipo_pes, \n' +
+    '                Id_end) VALUES\n' +
+    "                ('teste1', '5515991386483', 'teste1@email.com', '$2b$10$jNraZ0eYSV2gsRhs0C4tI.ehGtw0bR/qyLI5HnVwtm8DjN7OiL3nu', 'Cliente', 15);"
+}
