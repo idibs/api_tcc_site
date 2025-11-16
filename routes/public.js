@@ -66,12 +66,20 @@ router.get("/produtos/:categoria/:id", async (req, res) => {
   }
 });
 
+// GET /ensacados/preco?id=123
 router.get("/ensacados/preco", async (req, res) => {
   try {
-    const id_prod = req.body.id;
-    response = await getEnsacadosPeso(id);
+    const prodId = req.query.id ?? req.body?.id;
+    if (!prodId) {
+      return res
+        .status(400)
+        .send({ error: "product id required (query 'id')" });
+    }
+    const rows = await getEnsacadosPeso(prodId);
+    return res.status(200).send(rows || []);
   } catch (error) {
-    res.status(500).send({ error: error.message });
+    console.error("GET /ensacados/preco error:", error);
+    return res.status(500).send({ error: error.message || "Erro interno" });
   }
 });
 
@@ -446,6 +454,27 @@ router.put("/usuarios/:id", verifyToken, async (req, res) => {
   } catch (error) {
     console.error("PUT /usuarios/:id error:", error);
     res.status(500).send({ error: error.message || "Erro interno" });
+  }
+});
+
+router.get("/ensacados/produto/:id", async (req, res) => {
+  const prodIdRaw = req.params.id;
+  if (!prodIdRaw) {
+    return res.status(400).send({ error: "product id required" });
+  }
+
+  // tenta normalizar id (numérico ou string)
+  const prodId = isNaN(Number(prodIdRaw)) ? prodIdRaw : Number(prodIdRaw);
+
+  try {
+    const rows = await getEnsacadosPeso(prodId);
+    return res.status(200).send(rows || []);
+  } catch (err) {
+    console.error("ERROR GET /ensacados/produto/:id ->", err);
+    return res.status(500).send({
+      error: "Erro ao buscar ensacados",
+      detail: err && err.message ? err.message : err,
+    });
   }
 });
 
