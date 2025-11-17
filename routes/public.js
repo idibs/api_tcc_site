@@ -464,13 +464,9 @@ router.get("/ensacados/produto/:id", async (req, res) => {
   }
   const prodId = isNaN(Number(prodIdRaw)) ? prodIdRaw : Number(prodIdRaw);
 
-  console.info(`[ENSACADOS] request for prodId:`, prodId);
-
   try {
     const rows = await getEnsacadosPeso(prodId);
     const data = Array.isArray(rows) ? rows : [];
-    console.info(`[ENSACADOS] prodId=${prodId} -> rows.length=${data.length}`);
-    if (data.length && data.length < 20) console.debug("[ENSACADOS] rows sample:", data);
     return res.status(200).json(data);
   } catch (err) {
     console.error("ERROR GET /ensacados/produto/:id ->", err);
@@ -480,6 +476,7 @@ router.get("/ensacados/produto/:id", async (req, res) => {
     });
   }
 });
+
 
 
 // rota: GET /ensacados/produto/:prodId
@@ -537,6 +534,52 @@ router.get("/outros_produtos/:id", async (req, res) => {
     return res.status(500).send({ error: err && err.message ? err.message : "Erro interno" });
   }
 });
+
+
+router.get("/ensacados/codigo", async (req, res) => {
+  try {
+    const prodIdRaw = req.query.prodId;
+
+    if (!prodIdRaw) {
+      return res.status(400).json({ error: "prodId (ou id) é obrigatório" });
+    }
+
+    // Convertendo o prodId para o tipo correto
+    const prodId = isNaN(Number(prodIdRaw)) ? prodIdRaw : Number(prodIdRaw);
+
+    // Obtendo os dados dos ensacados para o prodId fornecido
+    const rows = await getEnsacadosPeso(prodId);
+    const data = Array.isArray(rows) ? rows : [];
+
+    // Log para depuração dos dados recebidos
+    console.debug("Dados recebidos da função getEnsacadosPeso:", data);
+
+    if (data.length === 0) {
+      return res.status(404).json({ error: "Nenhum dado encontrado para o produto com o id fornecido" });
+    }
+
+    // Mapeando os dados para um array com peso e código
+    const result = data.map((item) => {
+      console.debug("Item de dados:", item); // Verificando cada item
+
+      return {
+        peso: item.Peso_ens ?? item.Peso ?? item.peso ?? item.peso_ens ?? item.peso_kg,
+        codigo: item.Codigo_ens ?? item.codigo_ens ?? item.Codigo ?? item.codigo ?? null,
+      };
+    });
+
+    // Log do resultado final
+    console.debug("Resultado final:", result);
+
+    return res.status(200).json(result);
+  } catch (err) {
+    console.error("GET /ensacados/codigo error:", err);
+    return res.status(500).json({ error: "Erro interno ao buscar os dados" });
+  }
+});
+
+
+
 
 
 export default router;
