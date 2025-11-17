@@ -462,13 +462,16 @@ router.get("/ensacados/produto/:id", async (req, res) => {
   if (!prodIdRaw) {
     return res.status(400).send({ error: "product id required" });
   }
-
-  // tenta normalizar id (numérico ou string)
   const prodId = isNaN(Number(prodIdRaw)) ? prodIdRaw : Number(prodIdRaw);
+
+  console.info(`[ENSACADOS] request for prodId:`, prodId);
 
   try {
     const rows = await getEnsacadosPeso(prodId);
-    return res.status(200).send(rows || []);
+    const data = Array.isArray(rows) ? rows : [];
+    console.info(`[ENSACADOS] prodId=${prodId} -> rows.length=${data.length}`);
+    if (data.length && data.length < 20) console.debug("[ENSACADOS] rows sample:", data);
+    return res.status(200).json(data);
   } catch (err) {
     console.error("ERROR GET /ensacados/produto/:id ->", err);
     return res.status(500).send({
@@ -477,5 +480,63 @@ router.get("/ensacados/produto/:id", async (req, res) => {
     });
   }
 });
+
+
+// rota: GET /ensacados/produto/:prodId
+// retorna linhas da tabela produto_ensacado onde Id_prod = prodId
+router.get("/ensacados/produto/:prodId", async (req, res) => {
+  const prodIdRaw = req.params.prodId;
+  if (!prodIdRaw) {
+    return res.status(400).send({ error: "product id required in path" });
+  }
+
+  // tenta converter para número quando aplicável, mas aceita string também
+  const prodId = isNaN(Number(prodIdRaw)) ? prodIdRaw : Number(prodIdRaw);
+
+  try {
+    const rows = await getEnsacadosPeso(prodId);
+    // garantir array
+    const data = Array.isArray(rows) ? rows : [];
+    return res.status(200).json(data);
+  } catch (err) {
+    console.error("GET /ensacados/produto/:prodId error:", err);
+    return res.status(500).send({
+      error: "Erro ao buscar ensacados por produto",
+      detail: err && err.message ? err.message : err,
+    });
+  }
+});
+
+// rota: GET /outros_produtos  -> lista todos os outros_produtos (Nome_out, Foto_out, Descricao_out, ...)
+router.get("/outros_produtos", async (_, res) => {
+  try {
+    const rows = await getOutrosProdutos(); // função já importada
+    return res.status(200).json(Array.isArray(rows) ? rows : []);
+  } catch (err) {
+    console.error("GET /outros_produtos error:", err);
+    return res.status(500).send({ error: err && err.message ? err.message : "Erro interno" });
+  }
+});
+
+// rota: GET /outros_produtos/:id -> recupera um registro específico por Id_out
+router.get("/outros_produtos/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (!id) return res.status(400).send({ error: "Id obrigatório" });
+
+    // usa sua função getOutroProdutoById (já importada no topo)
+    const rows = await getOutroProdutoById(id);
+    if (!rows || rows.length === 0) {
+      return res.status(404).send({ error: "Outro produto não encontrado" });
+    }
+
+    // retorna o primeiro registro (padronizando como o /produtos/:categoria/:id faz)
+    return res.status(200).json(rows[0]);
+  } catch (err) {
+    console.error("GET /outros_produtos/:id error:", err);
+    return res.status(500).send({ error: err && err.message ? err.message : "Erro interno" });
+  }
+});
+
 
 export default router;
