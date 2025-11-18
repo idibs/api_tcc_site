@@ -8,18 +8,11 @@ const PORT = 8080;
 
 app.use(express.json());
 app.use(
-  cors([{
-    origin: "http://localhost:5173", // frontend React
-    methods: ["GET", "POST", "PUT", "DELETE"],
+  cors({
+    origin: '*', 
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
-  },
-  {
-    origin: "http://localhost:5174", // frontend React
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true,
-  }
-  
-])
+  })
 );
 app.use("/", publicRoutes);
 app.use("/", privateRoutes);
