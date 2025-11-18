@@ -222,7 +222,8 @@ export function getOutroProdutoById(id) {
                   Peso_out as Peso, 
                   Codigo_out as Codigo, 
                   Foto_out as Foto,
-                  Nome_categ as Categoria
+                  Nome_categ as Categoria,
+                  Descricao_out as Descricao
                 FROM outros_produtos p
                 INNER JOIN categoria c ON p.Id_categ = c.Id_categ
                 WHERE Id_out = ?;`;
