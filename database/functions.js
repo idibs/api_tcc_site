@@ -507,3 +507,20 @@ export function updatePessoaSetEndereco(idPessoa, idEndereco) {
     });
   });
 }
+
+export function getEnderecoByNumero(numero, conn = null) {
+  const localConn = conn ? conn : connection();
+  const query = `SELECT Id_end, Rua_end, Numero_end, Bairro_end, Cep_end, Cidade_end, Complemento_end
+                 FROM endereco
+                 WHERE Numero_end = ? LIMIT 1`;
+  return new Promise((resolve, reject) => {
+    localConn.query(query, [numero], (error, results) => {
+      if (!conn) localConn.end();
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results);
+      }
+    });
+  });
+}

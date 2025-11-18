@@ -7,6 +7,7 @@ import {
   getEndereco,
   createPedido,
   createEndereco,
+  getEnderecoByNumero,
 } from "../database/functions.js";
 
 const router = express.Router();
@@ -31,15 +32,27 @@ router.post("/pedido", async (req, res) => {
         element.complemento,
       ];
 
+      // primeiro tenta por CEP + NUMERO (comportamento antigo)
       let Id_end = await getEndereco(element.cep, element.numero, conn);
 
+      // se não achou por CEP+NUMERO, tenta achar por NUMERO isolado
       if (!Id_end || Id_end.length === 0) {
-        await createEndereco(endereco, conn);
-        Id_end = await getEndereco(element.cep, element.numero, conn);
-        if (!Id_end || Id_end.length === 0) {
-          throw new Error(
-            "Erro ao recuperar o endereço após tentativa de criação"
-          );
+        const Id_end_por_numero = await getEnderecoByNumero(
+          element.numero,
+          conn
+        );
+        if (Id_end_por_numero && Id_end_por_numero.length > 0) {
+          // usar o cadastro existente que tinha o mesmo número
+          Id_end = Id_end_por_numero;
+        } else {
+          // se não existir por número, cria
+          await createEndereco(endereco, conn);
+          Id_end = await getEndereco(element.cep, element.numero, conn);
+          if (!Id_end || Id_end.length === 0) {
+            throw new Error(
+              "Erro ao recuperar o endereço após tentativa de criação"
+            );
+          }
         }
       }
 
@@ -95,13 +108,11 @@ router.post("/pedido", async (req, res) => {
       console.error("Rollback falhou:", rbErr);
     }
     conn.end();
-    res
-      .status(500)
-      .send({
-        error:
-          error.message ||
-          "Erro ao processar pedido, nenhuma alteração foi salva.",
-      });
+    res.status(500).send({
+      error:
+        error.message ||
+        "Erro ao processar pedido, nenhuma alteração foi salva.",
+    });
   }
 });
 
