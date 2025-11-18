@@ -40,7 +40,10 @@ router.get("/ensacados", async (_, res) => {
 router.get("/cereais", async (_, res) => {
   try {
     const data = await getProdutos();
-    res.send(data);
+
+    const cereais = data.filter((item) => item.Id_categ === null);
+
+    res.send(cereais);
   } catch (error) {
     res.status(500).send({ error: error.message });
   }
@@ -477,8 +480,6 @@ router.get("/ensacados/produto/:id", async (req, res) => {
   }
 });
 
-
-
 // rota: GET /ensacados/produto/:prodId
 // retorna linhas da tabela produto_ensacado onde Id_prod = prodId
 router.get("/ensacados/produto/:prodId", async (req, res) => {
@@ -511,7 +512,9 @@ router.get("/outros_produtos", async (_, res) => {
     return res.status(200).json(Array.isArray(rows) ? rows : []);
   } catch (err) {
     console.error("GET /outros_produtos error:", err);
-    return res.status(500).send({ error: err && err.message ? err.message : "Erro interno" });
+    return res
+      .status(500)
+      .send({ error: err && err.message ? err.message : "Erro interno" });
   }
 });
 
@@ -531,10 +534,11 @@ router.get("/outros_produtos/:id", async (req, res) => {
     return res.status(200).json(rows[0]);
   } catch (err) {
     console.error("GET /outros_produtos/:id error:", err);
-    return res.status(500).send({ error: err && err.message ? err.message : "Erro interno" });
+    return res
+      .status(500)
+      .send({ error: err && err.message ? err.message : "Erro interno" });
   }
 });
-
 
 router.get("/ensacados/codigo", async (req, res) => {
   try {
@@ -551,25 +555,27 @@ router.get("/ensacados/codigo", async (req, res) => {
     const rows = await getEnsacadosPeso(prodId);
     const data = Array.isArray(rows) ? rows : [];
 
-    // Log para depuração dos dados recebidos
-    console.debug("Dados recebidos da função getEnsacadosPeso:", data);
-
     if (data.length === 0) {
-      return res.status(404).json({ error: "Nenhum dado encontrado para o produto com o id fornecido" });
+      return res.status(404).json({
+        error: "Nenhum dado encontrado para o produto com o id fornecido",
+      });
     }
 
     // Mapeando os dados para um array com peso e código
-    const result = data.map((item) => {
-      console.debug("Item de dados:", item); // Verificando cada item
-
-      return {
-        peso: item.Peso_ens ?? item.Peso ?? item.peso ?? item.peso_ens ?? item.peso_kg,
-        codigo: item.Codigo_ens ?? item.codigo_ens ?? item.Codigo ?? item.codigo ?? null,
-      };
-    });
-
-    // Log do resultado final
-    console.debug("Resultado final:", result);
+    const result = data.map((item) => ({
+      peso:
+        item.Peso_ens ??
+        item.Peso ??
+        item.peso ??
+        item.peso_ens ??
+        item.peso_kg,
+      codigo:
+        item.Codigo_ens ??
+        item.codigo_ens ??
+        item.Codigo ??
+        item.codigo ??
+        null,
+    }));
 
     return res.status(200).json(result);
   } catch (err) {
@@ -577,9 +583,5 @@ router.get("/ensacados/codigo", async (req, res) => {
     return res.status(500).json({ error: "Erro interno ao buscar os dados" });
   }
 });
-
-
-
-
 
 export default router;

@@ -129,7 +129,8 @@ export function getProdutos() {
                   Preco_med_prod as Preco, 
                   Quantidade_prod as Quantidade, 
                   Codigo_prod as Codigo, 
-                  Foto_prod as Foto
+                  Foto_prod as Foto,
+                  Id_categ
                 FROM produto;`;
     conn.query(sql, (error, results) => {
       conn.end();
@@ -195,7 +196,8 @@ export function getEnsacadosPeso(id_prod) {
   return new Promise((resolve, reject) => {
     const sql = `SELECT 
                   Peso_ens as Peso, 
-                  Quantidade_ens as Quantidade
+                  Quantidade_ens as Quantidade,
+                  Codigo_ens as Codigo
                 FROM produto_ensacado
                 WHERE Id_prod = ?;`;
     conn.query(sql, [id_prod], (error, results) => {
