@@ -76,7 +76,7 @@ router.post("/pedido", async (req, res) => {
       const valor_total = element.preco * element.quantidade;
       const peso_total = Id_prod[0].Peso * element.quantidade;
       const status =
-        element.Status_pedprod === "Em analise" ? "Em analise" : "Em Orçamento";
+        element.Status_pedprod === "Em analise" ? "Em analise" : "Em orçamento";
 
       const pedido = [
         Id_pes[0].Id_pes,
