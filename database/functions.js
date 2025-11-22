@@ -1,4 +1,5 @@
 import connection from "./connection.js";
+import crypto from "crypto";
 
 export function deleteOutrosProdutos(id) {
   const conn = connection();
@@ -524,4 +525,45 @@ export function getEnderecoByNumero(numero, conn = null) {
       }
     });
   });
+}
+
+export function createEmailVerification(email, codeHash, expiresAt) {
+  const conn = connection();
+  const sql = `INSERT INTO email_verification (email_ema, code_hash_ema, expires_at_ema) VALUES (?, ?, ?)`;
+  return new Promise((resolve, reject) => {
+    conn.query(sql, [email, codeHash, expiresAt], (err, results) => {
+      conn.end();
+      if (err) return reject(err);
+      resolve(results);
+    });
+  });
+}
+
+export function getEmailVerificationByEmail(email) {
+  const conn = connection();
+  const sql = `SELECT * FROM email_verification WHERE email_ema = ? ORDER BY id_ema DESC LIMIT 1`;
+  return new Promise((resolve, reject) => {
+    conn.query(sql, [email], (err, results) => {
+      conn.end();
+      if (err) return reject(err);
+      resolve(results);
+    });
+  });
+}
+
+export function deleteEmailVerificationsByEmail(email) {
+  const conn = connection();
+  const sql = `DELETE FROM email_verification WHERE email_ema = ?`;
+  return new Promise((resolve, reject) => {
+    conn.query(sql, [email], (err, results) => {
+      conn.end();
+      if (err) return reject(err);
+      resolve(results);
+    });
+  });
+}
+
+// helper to hash code (use when creating/verifying)
+export function hashCode(code) {
+  return crypto.createHash("sha256").update(String(code).trim()).digest("hex");
 }

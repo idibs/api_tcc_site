@@ -19,11 +19,17 @@ import {
   updateUsuarioById,
   updatePessoaSetEndereco,
   updateEnderecoById,
+  createEmailVerification,
+  getEmailVerificationByEmail,
+  deleteEmailVerificationsByEmail,
+  hashCode,
 } from "../database/functions.js";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config();
+import crypto from "crypto";
+import { sendVerificationEmail } from "../util/emailService.js";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -581,6 +587,128 @@ router.get("/ensacados/codigo", async (req, res) => {
   } catch (err) {
     console.error("GET /ensacados/codigo error:", err);
     return res.status(500).json({ error: "Erro interno ao buscar os dados" });
+  }
+});
+
+// checar se email já existe (retorna { exists: true/false })
+router.post("/email/check", async (req, res) => {
+  try {
+    const emailRaw = req.body.email || "";
+    const email = String(emailRaw).trim().toLowerCase();
+    if (!email) return res.status(400).send({ error: "email obrigatório" });
+
+    const existing = await getClienteEmail(email);
+    return res
+      .status(200)
+      .json({ exists: !!(existing && existing.length > 0) });
+  } catch (err) {
+    console.error("POST /email/check error:", err);
+    return res.status(500).send({ error: "erro interno" });
+  }
+});
+
+// enviar código por e-mail
+router.post("/email/send-code", async (req, res) => {
+  try {
+    const emailRaw = req.body.email || "";
+    const email = String(emailRaw).trim().toLowerCase();
+    if (!email) return res.status(400).send({ error: "email obrigatório" });
+
+    // evita enviar se já existe conta
+    const existing = await getClienteEmail(email);
+    if (existing && existing.length > 0) {
+      return res.status(409).send({ error: "email já cadastrado" });
+    }
+
+    // gera código 6 dígitos
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    // gera hash usando a função helper (garante consistência)
+    const codeHash = hashCode(code);
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
+
+    // salva (remove antigos antes)
+    await deleteEmailVerificationsByEmail(email);
+    await createEmailVerification(email, codeHash, expiresAt);
+
+    // envia e-mail (Mailgun SMTP via nodemailer)
+    await sendVerificationEmail(email, code);
+
+    return res.status(200).send({ message: "código enviado" });
+  } catch (err) {
+    console.error("POST /email/send-code error:", err);
+    return res.status(500).send({ error: "erro ao enviar código" });
+  }
+});
+
+// rota de verificação — debug temporário
+router.post("/email/verify-code", async (req, res) => {
+  try {
+    const emailRaw = req.body.email || "";
+    const code = String(req.body.code || "").trim();
+    const email = String(emailRaw).trim().toLowerCase();
+
+    console.log("[DEBUG verify] email:", email, "code:", code);
+
+    if (!email || !code) {
+      return res
+        .status(400)
+        .send({ verified: false, error: "email e código obrigatórios" });
+    }
+
+    const rows = await getEmailVerificationByEmail(email);
+    console.log("[DEBUG verify] rows from DB:", rows);
+
+    if (!rows || rows.length === 0) {
+      return res
+        .status(404)
+        .send({ verified: false, error: "código não encontrado" });
+    }
+
+    const record = rows[0];
+
+    // use os nomes reais das colunas do seu DB
+    const storedHash = record.code_hash_ema;
+    const expiresAt = record.expires_at_ema;
+
+    console.log(
+      "[DEBUG verify] record id_ema:",
+      record.id_ema,
+      "storedHash:",
+      storedHash,
+      "expiresAt:",
+      expiresAt
+    );
+
+    const now = new Date();
+    if (new Date(expiresAt) < now) {
+      await deleteEmailVerificationsByEmail(email);
+      return res
+        .status(410)
+        .send({ verified: false, error: "código expirado" });
+    }
+
+    // gera hash do código informado (SHA256 hex) usando helper
+    const computedHash = hashCode(code);
+    console.log("[DEBUG verify] computedHash:", computedHash);
+
+    // compara com o que está no DB
+    if (computedHash !== storedHash) {
+      return res.status(401).send({
+        verified: false,
+        error: "código inválido",
+        debug: {
+          stored: storedHash,
+          computed: computedHash,
+        },
+      });
+    }
+
+    // sucesso
+    await deleteEmailVerificationsByEmail(email);
+    return res.status(200).json({ verified: true });
+  } catch (err) {
+    console.error("POST /email/verify-code error:", err);
+    return res.status(500).send({ error: "erro interno" });
   }
 });
 
