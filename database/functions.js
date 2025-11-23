@@ -86,7 +86,7 @@ export function createCliente(data) {
 export function getCategorias() {
   const conn = connection();
   return new Promise((resolve, reject) => {
-    const sql = `SELECT * FROM Categoria;`;
+    const sql = `SELECT * FROM categoria;`;
     conn.query(sql, (error, results) => {
       conn.end();
       if (error) {
