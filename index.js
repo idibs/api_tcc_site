@@ -7,15 +7,13 @@ const app = express();
 const PORT = 8080;
 
 app.use(express.json());
-
 app.use(
   cors({
-    origin: ["http://localhost:5173"], // libere somente o necessário
+    origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
 );
-
 app.use("/", publicRoutes);
 app.use("/", privateRoutes);
 
