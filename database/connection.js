@@ -2,10 +2,10 @@ import mysql from "mysql2";
 
 export default function connection() {
   return mysql.createConnection({
-    host: env(MYSQLHOST),
-    user: env(MYSQLUSER),
-    password: env(MYSQLPASSWORD),
+    host: process.env.MYSQLHOST,
+    user: process.env.MYSQLUSER,
+    password: process.env.MYSQLPASSWORD,
     database: "tcc",
-    port: 3306,
+    port: process.env.DB_PORT ?? 3306,
   });
 }
