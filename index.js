@@ -4,25 +4,21 @@ import privateRoutes from "./routes/private.js";
 import cors from "cors";
 
 const app = express();
-
-// PORTA DINÂMICA PARA RENDER
-const PORT = process.env.PORT || 8080;
+const PORT = 8080;
 
 app.use(express.json());
 
-// CORS CORRIGIDO
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://seusite.com"], // pode colocar seu domínio aqui depois
+    origin: ["http://localhost:5173"], // libere somente o necessário
     methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
   })
 );
 
-// ROTAS
 app.use("/", publicRoutes);
 app.use("/", privateRoutes);
 
-// LISTEN
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
